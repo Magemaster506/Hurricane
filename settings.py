@@ -17,6 +17,7 @@ BULLET_TRAVEL_SPEED = 15
 FIRE_RATE = 10
 
 BASE_ENEMY_HEALTH = 70
+BASE_ENEMY_MOVE_SPEED = 1
 ENEMY_KNOCKBACK = 4
 
 NORTH_FRAME1 = 'data/images/entities/player/north/northframe1.png'
