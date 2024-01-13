@@ -63,7 +63,7 @@ class SparksParticleSystem:
             particle[0][0] += particle[1][0]
             particle[0][1] += particle[1][1]
             particle[2] -= PARTICLE_RANGE  # Particle lifetime
-            if particle[2] <= 0:
+            if particle[2] <= 0 or particle[0][0] < 0 or particle[0][0] > WIN_WIDTH or particle [0][1] < 0 or particle[0][1] > WIN_HEIGHT:
                 self.particles.remove(particle)
 
     def draw_particles(self):
@@ -91,7 +91,7 @@ class EnemyHitParticleSystem:
             particle[0][0] += particle[1][0]
             particle[0][1] += particle[1][1]
             particle[2] -= PARTICLE_RANGE  # Particle lifetime
-            if particle[2] <= 0:
+            if particle[2] <= 0 or particle[0][0] < 0 or particle[0][0] > WIN_WIDTH or particle [0][1] < 0 or particle[0][1] > WIN_HEIGHT:
                 self.particles.remove(particle)
 
     def draw_particles(self):
@@ -119,7 +119,7 @@ class EnemySpawnParticleSystem:
             particle[0][0] += particle[1][0]
             particle[0][1] += particle[1][1]
             particle[2] -= PARTICLE_RANGE  # Particle lifetime
-            if particle[2] <= 0:
+            if particle[2] <= 0 or particle[0][0] < 0 or particle[0][0] > WIN_WIDTH or particle [0][1] < 0 or particle[0][1] > WIN_HEIGHT:
                 self.particles.remove(particle)
 
     def draw_particles(self):
@@ -147,7 +147,7 @@ class MuzzleFlashParticleSystem:
             particle[0][0] += particle[1][0]
             particle[0][1] += particle[1][1]
             particle[2] -= MUZZLE_PARTICLE_RANGE  # Particle lifetime
-            if particle[2] <= 0:
+            if particle[2] <= 0 or particle[0][0] < 0 or particle[0][0] > WIN_WIDTH or particle [0][1] < 0 or particle[0][1] > WIN_HEIGHT:
                 self.particles.remove(particle)
 
     def draw_particles(self):
