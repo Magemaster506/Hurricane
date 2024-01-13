@@ -10,10 +10,10 @@ screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 pygame.display.set_caption(WIN_TITLE)
 
 player_animations = {
-    "north": [pygame.image.load(NORTH_FRAME1), pygame.image.load(NORTH_FRAME2), pygame.image.load(NORTH_FRAME3), pygame.image.load(NORTH_FRAME4)],
-    "east": [pygame.image.load(EAST_FRAME1), pygame.image.load(EAST_FRAME2), pygame.image.load(EAST_FRAME3), pygame.image.load(EAST_FRAME4)],
-    "south": [pygame.image.load(SOUTH_FRAME1), pygame.image.load(SOUTH_FRAME2), pygame.image.load(SOUTH_FRAME3), pygame.image.load(SOUTH_FRAME4)],
-    "west": [pygame.image.load(WEST_FRAME1), pygame.image.load(WEST_FRAME2), pygame.image.load(WEST_FRAME3), pygame.image.load(WEST_FRAME4)],
+    "north": [pygame.image.load(NORTH_FRAME1).convert_alpha(), pygame.image.load(NORTH_FRAME2).convert_alpha(), pygame.image.load(NORTH_FRAME3).convert_alpha(), pygame.image.load(NORTH_FRAME4).convert_alpha()],
+    "east": [pygame.image.load(EAST_FRAME1).convert_alpha(), pygame.image.load(EAST_FRAME2).convert_alpha(), pygame.image.load(EAST_FRAME3).convert_alpha(), pygame.image.load(EAST_FRAME4).convert_alpha()],
+    "south": [pygame.image.load(SOUTH_FRAME1).convert_alpha(), pygame.image.load(SOUTH_FRAME2).convert_alpha(), pygame.image.load(SOUTH_FRAME3).convert_alpha(), pygame.image.load(SOUTH_FRAME4).convert_alpha()],
+    "west": [pygame.image.load(WEST_FRAME1).convert_alpha(), pygame.image.load(WEST_FRAME2).convert_alpha(), pygame.image.load(WEST_FRAME3).convert_alpha(), pygame.image.load(WEST_FRAME4).convert_alpha()],
 }
 
 gun_image = pygame.image.load(PISTOL_IMAGE)
