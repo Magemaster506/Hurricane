@@ -9,38 +9,6 @@ pygame.init()
 screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 pygame.display.set_caption(WIN_TITLE)
 
-class Enemy:
-    def __init__(self, x, y, radius, health):
-        self.position = [x, y]
-        self.radius = radius
-        self.health = health
-        self.hit_flash_timer = 0
-        self.hit_bullets = []  
-
-    def decrease_health(self, amount):
-        self.health -= amount
-        self.hit_flash_timer = 6  
-
-    def is_alive(self):
-        return self.health > 0
-
-    def update(self, player_position):
-        if self.hit_flash_timer > 0:
-            self.hit_flash_timer -= 1
-            
-        if self.is_alive():
-            dx = player_position[0] - self.position[0]
-            dy = player_position[1] - self.position[1]
-            distance = math.sqrt(dx**2 + dy**2)
-            
-            if distance > 0:
-                move_speed = BASE_ENEMY_MOVE_SPEED
-                move_dx = (dx / distance) * move_speed
-                move_dy = (dy / distance) * move_speed
-                
-                self.position[0] += move_dx
-                self.position[1] += move_dy
-
 player_animations = {
     "north": [pygame.image.load(NORTH_FRAME1), pygame.image.load(NORTH_FRAME2), pygame.image.load(NORTH_FRAME3), pygame.image.load(NORTH_FRAME4)],
     "east": [pygame.image.load(EAST_FRAME1), pygame.image.load(EAST_FRAME2), pygame.image.load(EAST_FRAME3), pygame.image.load(EAST_FRAME4)],
@@ -74,7 +42,7 @@ bullet_speed = BULLET_TRAVEL_SPEED
 bullets = []
 particle_systems = []
 
-enemy = Enemy(0, 0, 20, BASE_ENEMY_HEALTH)  
+
 
 clock = pygame.time.Clock()
 
@@ -93,7 +61,7 @@ def handle_wave(wave_number):
     print(f"Number of enemies: {len(enemies)}")
     return enemies
 
-class ParticleSystem:
+class EnemyHitParticleSystem:
     def __init__(self, position, num_particles, burst_radius, duration):
         self.particles = []
         self.position = position
@@ -107,13 +75,13 @@ class ParticleSystem:
             speed = random.uniform(1, 3)  # Random speed
             x_speed = speed * math.cos(angle)
             y_speed = speed * math.sin(angle)
-            self.particles.append([list(self.position), [x_speed, y_speed], random.randint(4, 6)])
+            self.particles.append([list(self.position), [x_speed, y_speed], random.randint(6, 8)])
 
     def update_particles(self):
         for particle in self.particles:
             particle[0][0] += particle[1][0]
             particle[0][1] += particle[1][1]
-            particle[2] -= 0.5  # Particle lifetime
+            particle[2] -= PARTICLE_RANGE  # Particle lifetime
             if particle[2] <= 0:
                 self.particles.remove(particle)
 
@@ -121,13 +89,47 @@ class ParticleSystem:
         for particle in self.particles:
             pygame.draw.circle(screen, (255, 255, 255), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
 
+
+class Enemy:
+    def __init__(self, x, y, radius, health):
+        self.position = [x, y]
+        self.radius = radius
+        self.health = health
+        self.hit_flash_timer = 0
+        self.hit_bullets = []  
+
+    def decrease_health(self, amount):
+        self.health -= amount
+        self.hit_flash_timer = 6
+        particle_systems.append(EnemyHitParticleSystem([self.position[0], self.position[1]], 5, 4, 3))
+
+    def is_alive(self):
+        return self.health > 0
+
+    def update(self, player_position):
+        if self.hit_flash_timer > 0:
+            self.hit_flash_timer -= 1
+            
+        if self.is_alive():
+            dx = player_position[0] - self.position[0]
+            dy = player_position[1] - self.position[1]
+            distance = math.sqrt(dx**2 + dy**2)
+            
+            if distance > 0:
+                move_speed = BASE_ENEMY_MOVE_SPEED
+                move_dx = (dx / distance) * move_speed
+                move_dy = (dy / distance) * move_speed
+                
+                self.position[0] += move_dx
+                self.position[1] += move_dy
+
+enemy = Enemy(0, 0, 20, BASE_ENEMY_HEALTH)  
+
+
 wave_number = 1
 enemies = handle_wave(wave_number)
 
-particle_systems.append(ParticleSystem([250, 250], 1, 1, 3))
-
-run = True
-while run:
+while True:
     clock.tick(60)
 
     screen.blit(background_image, background_pos)
@@ -138,14 +140,14 @@ while run:
             system.duration -= 1
         system.update_particles()
         system.draw_particles()
-            
-
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            run = False
+            pygame.quit()
+            sys.exit()
         elif event.type == pygame.K_ESCAPE:
-            run = False
+            pygame.quit()
+            sys.exit()
 
 
     player_position = [player_rect.centerx, player_rect.centery]
@@ -222,9 +224,6 @@ while run:
                     enemy.position[1] += knockback_distance * math.sin(knockback_direction)
                  
                     enemy.hit_bullets.append(bullet)
-
-                    if not enemy.is_alive():
-                        bullets.remove(bullet)
 
     if gun_kickback > 0:
         gun_kickback -= gun_kickback_speed
