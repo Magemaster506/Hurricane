@@ -20,7 +20,7 @@ gun_image = pygame.image.load(PISTOL_IMAGE)
 background_image = pygame.image.load(BACKGROUND_IMAGE)
 
 ui_image = pygame.image.load(UI_IMAGE)
-
+#werwer
 background_pos = [0, 0]
 
 player_rect = player_animations[player_direction][player_frame].get_rect(center=(WIN_WIDTH // 2, WIN_HEIGHT // 2))
