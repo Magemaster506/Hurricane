@@ -2,7 +2,7 @@ FPS = 60
 
 WIN_HEIGHT = 800
 WIN_WIDTH = 800
-WIN_TITLE = 'Hurricane'
+WIN_TITLE = 'Hurricane - INDEV'
 
 PLAYER_IMAGE = 'data/images/entities/player/player.png'
 PISTOL_IMAGE = 'data/images/weapons/Rifle.png'
@@ -15,6 +15,8 @@ PLAYER_SPEED = 2
 BULLET_ACCURACY = 6
 BULLET_TRAVEL_SPEED = 15
 FIRE_RATE = 10
+
+BULLET_COLOR = (255, 255, 255)
 
 BASE_ENEMY_HEALTH = 70
 BASE_ENEMY_MOVE_SPEED = 1
