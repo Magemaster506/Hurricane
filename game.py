@@ -20,7 +20,7 @@ gun_image = pygame.image.load(PISTOL_IMAGE)
 background_image = pygame.image.load(BACKGROUND_IMAGE)
 
 ui_image = pygame.image.load(UI_IMAGE)
-#werwer
+
 background_pos = [0, 0]
 
 player_rect = player_animations[player_direction][player_frame].get_rect(center=(WIN_WIDTH // 2, WIN_HEIGHT // 2))
@@ -32,9 +32,8 @@ def spawn_enemies(num_enemies):
     for _ in range(num_enemies):
         x = random.randint(50, WIN_WIDTH - 50)
         y = random.randint(50, WIN_HEIGHT - 50)
-        print(f"enemypos: ({x}, {y})")
         enemies.append(Enemy(x, y, 20, BASE_ENEMY_HEALTH))
-        particle_systems.append(EnemyHitParticleSystem([x, y], 5, 4, 3))
+        particle_systems.append(EnemySpawnParticleSystem([x, y], 5, 4, 3))
     return enemies
 
 def handle_wave(wave_number):
@@ -43,6 +42,34 @@ def handle_wave(wave_number):
     print(f"Number of enemies: {len(enemies)}")
     return enemies
 
+class SparksParticleSystem:
+    def __init__(self, position, num_particles, burst_radius, duration):
+        self.particles = []
+        self.position = position
+        self.num_particles = num_particles
+        self.burst_radius = burst_radius
+        self.duration = duration
+
+    def spawn_particles(self):
+        for _ in range(self.num_particles):
+            angle = random.uniform(0, 2 * math.pi / 2)
+            speed = random.uniform(1, 3)  # Random speed
+            x_speed = speed * math.cos(angle)
+            y_speed = speed * math.sin(angle)
+            self.particles.append([list(self.position), [x_speed * 2, y_speed * 2], random.randint(2, 4)])
+
+    def update_particles(self):
+        for particle in self.particles:
+            particle[0][0] += particle[1][0]
+            particle[0][1] += particle[1][1]
+            particle[2] -= PARTICLE_RANGE  # Particle lifetime
+            if particle[2] <= 0:
+                self.particles.remove(particle)
+
+    def draw_particles(self):
+        for particle in self.particles:
+            pygame.draw.circle(screen, (255, 255, 0), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
+                  
 class EnemyHitParticleSystem:
     def __init__(self, position, num_particles, burst_radius, duration):
         self.particles = []
@@ -53,7 +80,7 @@ class EnemyHitParticleSystem:
 
     def spawn_particles(self):
         for _ in range(self.num_particles):
-            angle = random.uniform(0, 2 * math.pi)  # Random angle in radians
+            angle = random.uniform(0, 2 * math.pi)
             speed = random.uniform(1, 3)  # Random speed
             x_speed = speed * math.cos(angle)
             y_speed = speed * math.sin(angle)
@@ -70,6 +97,34 @@ class EnemyHitParticleSystem:
     def draw_particles(self):
         for particle in self.particles:
             pygame.draw.circle(screen, (255, 255, 255), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
+            
+class EnemySpawnParticleSystem:
+    def __init__(self, position, num_particles, burst_radius, duration):
+        self.particles = []
+        self.position = position
+        self.num_particles = num_particles
+        self.burst_radius = burst_radius
+        self.duration = duration
+
+    def spawn_particles(self):
+        for _ in range(self.num_particles):
+            angle = random.uniform(0, 2 * math.pi)
+            speed = random.uniform(1, 3)  # Random speed
+            x_speed = speed * math.cos(angle)
+            y_speed = speed * math.sin(angle)
+            self.particles.append([list(self.position), [x_speed, y_speed], random.randint(6, 8)])
+
+    def update_particles(self):
+        for particle in self.particles:
+            particle[0][0] += particle[1][0]
+            particle[0][1] += particle[1][1]
+            particle[2] -= PARTICLE_RANGE  # Particle lifetime
+            if particle[2] <= 0:
+                self.particles.remove(particle)
+
+    def draw_particles(self):
+        for particle in self.particles:
+            pygame.draw.circle(screen, (255, 0, 0), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
 
 class MuzzleFlashParticleSystem:
     def __init__(self, position, num_particles, burst_radius, duration):
@@ -81,11 +136,11 @@ class MuzzleFlashParticleSystem:
 
     def spawn_particles(self):
         for _ in range(self.num_particles):
-            angle = random.uniform(0, 2 * math.pi / 2)  # Random angle in radians
+            angle = random.uniform(0, 2 * math.pi / 2)
             speed = random.uniform(3, 5)  # Random speed
             x_speed = speed * math.cos(angle)
             y_speed = speed * math.sin(angle)
-            self.particles.append([list(self.position), [x_speed, y_speed], random.randint(2, 4)])
+            self.particles.append([list(self.position), [x_speed, y_speed], random.randint(3, 5)])
 
     def update_particles(self):
         for particle in self.particles:
@@ -111,6 +166,7 @@ class Enemy:
         self.health -= amount
         self.hit_flash_timer = 6
         particle_systems.append(EnemyHitParticleSystem([self.position[0], self.position[1]], 2, 4, 3))
+        particle_systems.append(SparksParticleSystem([self.position[0], self.position[1]], 1, 8, 1))
 
     def is_alive(self):
         return self.health > 0
@@ -133,7 +189,6 @@ class Enemy:
                 self.position[1] += move_dy
 
 enemy = Enemy(0, 0, 20, BASE_ENEMY_HEALTH)  
-
 
 wave_number = 1
 enemies = handle_wave(wave_number)
@@ -209,7 +264,7 @@ while True:
             bullet_pos = [player_rect.centerx + weapon_length * math.cos(bullet_angle),
                           player_rect.centery + weapon_length * math.sin(bullet_angle)]
             bullets.append([bullet_pos, bullet_angle])
-            particle_systems.append(MuzzleFlashParticleSystem([bullet_pos[0], bullet_pos[1]], 3, 1 , 1))
+            particle_systems.append(MuzzleFlashParticleSystem([bullet_pos[0], bullet_pos[1]], 4, 1 , 1))
             gun_kickback = gun_kickback_distance
             player_rect.x -= gun_kickback_distance * math.cos(bullet_angle)
             player_rect.y -= gun_kickback_distance * math.sin(bullet_angle)
@@ -222,7 +277,6 @@ while True:
         bullet_pos[0] += bullet_speed * math.cos(bullet_angle)
         bullet_pos[1] += bullet_speed * math.sin(bullet_angle)
 
-        # Check for collision with enemies and update their health
         for enemy in enemies:
             distance = math.sqrt((bullet_pos[0] - enemy.position[0])**2 + (bullet_pos[1] - enemy.position[1])**2)
             if enemy.is_alive() and bullet not in enemy.hit_bullets:
@@ -241,7 +295,6 @@ while True:
     else:
         gun_kickback = 0
 
-    # Update enemy positions
     for enemy in enemies:
         enemy.update(player_position)
 
