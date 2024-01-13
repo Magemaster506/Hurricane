@@ -23,26 +23,7 @@ ui_image = pygame.image.load(UI_IMAGE)
 
 background_pos = [0, 0]
 
-player_direction = "south"
-player_frame = 0
 player_rect = player_animations[player_direction][player_frame].get_rect(center=(WIN_WIDTH // 2, WIN_HEIGHT // 2))
-player_speed = PLAYER_SPEED
-animation_speed = 8
-
-weapon_length = 55
-gun_pivot_offset = (-5, 10)
-gun_kickback_distance = 4
-gun_kickback_speed = 2
-gun_kickback = 0
-
-shoot_delay = FIRE_RATE
-bullet_accuracy = BULLET_ACCURACY
-bullet_speed = BULLET_TRAVEL_SPEED
-
-bullets = []
-particle_systems = []
-
-
 
 clock = pygame.time.Clock()
 
@@ -53,6 +34,7 @@ def spawn_enemies(num_enemies):
         y = random.randint(50, WIN_HEIGHT - 50)
         print(f"enemypos: ({x}, {y})")
         enemies.append(Enemy(x, y, 20, BASE_ENEMY_HEALTH))
+        particle_systems.append(EnemyHitParticleSystem([x, y], 5, 4, 3))
     return enemies
 
 def handle_wave(wave_number):
@@ -89,6 +71,33 @@ class EnemyHitParticleSystem:
         for particle in self.particles:
             pygame.draw.circle(screen, (255, 255, 255), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
 
+class MuzzleFlashParticleSystem:
+    def __init__(self, position, num_particles, burst_radius, duration):
+        self.particles = []
+        self.position = position
+        self.num_particles = num_particles
+        self.burst_radius = burst_radius
+        self.duration = duration
+
+    def spawn_particles(self):
+        for _ in range(self.num_particles):
+            angle = random.uniform(0, 2 * math.pi / 2)  # Random angle in radians
+            speed = random.uniform(3, 5)  # Random speed
+            x_speed = speed * math.cos(angle)
+            y_speed = speed * math.sin(angle)
+            self.particles.append([list(self.position), [x_speed, y_speed], random.randint(2, 4)])
+
+    def update_particles(self):
+        for particle in self.particles:
+            particle[0][0] += particle[1][0]
+            particle[0][1] += particle[1][1]
+            particle[2] -= MUZZLE_PARTICLE_RANGE  # Particle lifetime
+            if particle[2] <= 0:
+                self.particles.remove(particle)
+
+    def draw_particles(self):
+        for particle in self.particles:
+            pygame.draw.circle(screen, (255, 255, 255), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
 
 class Enemy:
     def __init__(self, x, y, radius, health):
@@ -101,7 +110,7 @@ class Enemy:
     def decrease_health(self, amount):
         self.health -= amount
         self.hit_flash_timer = 6
-        particle_systems.append(EnemyHitParticleSystem([self.position[0], self.position[1]], 5, 4, 3))
+        particle_systems.append(EnemyHitParticleSystem([self.position[0], self.position[1]], 2, 4, 3))
 
     def is_alive(self):
         return self.health > 0
@@ -134,6 +143,7 @@ while True:
 
     screen.blit(background_image, background_pos)
 
+    #static particle settings and handling
     for system in particle_systems:
         if system.duration > 0:
             system.spawn_particles()
@@ -145,10 +155,10 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        elif event.type == pygame.K_ESCAPE:
-            pygame.quit()
-            sys.exit()
-
+        if event.type == pygame.KEYDOWN:
+            if event.type == pygame.K_ESCAPE:
+                pygame.quit()
+                sys.exit()
 
     player_position = [player_rect.centerx, player_rect.centery]
     mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -199,6 +209,7 @@ while True:
             bullet_pos = [player_rect.centerx + weapon_length * math.cos(bullet_angle),
                           player_rect.centery + weapon_length * math.sin(bullet_angle)]
             bullets.append([bullet_pos, bullet_angle])
+            particle_systems.append(MuzzleFlashParticleSystem([bullet_pos[0], bullet_pos[1]], 3, 1 , 1))
             gun_kickback = gun_kickback_distance
             player_rect.x -= gun_kickback_distance * math.cos(bullet_angle)
             player_rect.y -= gun_kickback_distance * math.sin(bullet_angle)
@@ -215,7 +226,7 @@ while True:
         for enemy in enemies:
             distance = math.sqrt((bullet_pos[0] - enemy.position[0])**2 + (bullet_pos[1] - enemy.position[1])**2)
             if enemy.is_alive() and bullet not in enemy.hit_bullets:
-                if distance < enemy.radius + 7.5:
+                if distance < enemy.radius + BULLET_SIZE:
                     enemy.decrease_health(10)
 
                     knockback_distance = ENEMY_KNOCKBACK  

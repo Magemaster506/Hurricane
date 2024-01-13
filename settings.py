@@ -11,17 +11,19 @@ BACKGROUND_IMAGE = 'data/images/background.png'
 
 UI_IMAGE = 'data/images/UI.png'
 
-PLAYER_SPEED = 2
+PLAYER_SPEED = 4
 BULLET_ACCURACY = 6
 BULLET_TRAVEL_SPEED = 15
 FIRE_RATE = 10
+BULLET_SIZE = 7.5
 
 PARTICLE_RANGE = 0.5
+MUZZLE_PARTICLE_RANGE = 1
 
 BULLET_COLOR = (255, 255, 255)
 
 BASE_ENEMY_HEALTH = 70
-BASE_ENEMY_MOVE_SPEED = 1
+BASE_ENEMY_MOVE_SPEED = 2
 ENEMY_KNOCKBACK = 4
 
 NORTH_FRAME1 = 'data/images/entities/player/north/northframe1.png'
@@ -44,3 +46,21 @@ WEST_FRAME2 = 'data/images/entities/player/west/westframe2.png'
 WEST_FRAME3 = 'data/images/entities/player/west/westframe1.png'
 WEST_FRAME4 = 'data/images/entities/player/west/westframe3.png'
 
+player_direction = "south"
+player_frame = 0
+
+player_speed = PLAYER_SPEED
+animation_speed = 8
+
+weapon_length = 65
+gun_pivot_offset = (-5, 10)
+gun_kickback_distance = 4
+gun_kickback_speed = 2
+gun_kickback = 0
+
+shoot_delay = FIRE_RATE
+bullet_accuracy = BULLET_ACCURACY
+bullet_speed = BULLET_TRAVEL_SPEED
+
+bullets = []
+particle_systems = []
