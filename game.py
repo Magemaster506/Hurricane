@@ -22,8 +22,6 @@ background_image = pygame.image.load(BACKGROUND_IMAGE).convert_alpha()
 
 ui_image = pygame.image.load(UI_IMAGE).convert_alpha()
 
-wave_break_time = 15000
-
 background_pos = [0, 0]
 
 player_rect = player_animations[player_direction][player_frame].get_rect(center=(WIN_WIDTH // 2, WIN_HEIGHT // 2))
@@ -42,21 +40,11 @@ def spawn_enemies(num_enemies):
     return enemies
 
 def handle_wave(wave_number):
-    print(f"Wave {wave_number} starting")
-
-    # Wait for 3 seconds before starting the next wave
-    wave_start_time = pygame.time.get_ticks()
-    wave_delay = 3000  # 3000 milliseconds = 3 seconds
-
-    while pygame.time.get_ticks() - wave_start_time < wave_delay:
-        clock.tick(60)
-
-    enemies = spawn_enemies(wave_number + wave_number // 2)
-    print(f"Number of enemies: {len(enemies)}")
-
-    return enemies
-
-
+        print(f"Wave {wave_number} starting")
+        enemies = spawn_enemies(wave_number + wave_number // 2)
+        print(f"Number of enemies: {len(enemies)}")
+        has_checked = 1
+        return enemies
 
 class SparksParticleSystem:
     def __init__(self, position, num_particles, burst_radius, duration):
@@ -209,25 +197,18 @@ enemy = Enemy(0, 0, 20, BASE_ENEMY_HEALTH)
 wave_number = 1
 enemies = handle_wave(wave_number)
 
-last_wave_end_time = pygame.time.get_ticks()
-
 while True:
     clock.tick(60)
-    current_time = pygame.time.get_ticks()
+    wait_time = pygame.time.get_ticks()
+    print(wait_time)
     screen.blit(background_image, background_pos)
     
-    if current_time - last_wave_end_time >= wave_break_time:
-        wave_number += 1
-        enemies = handle_wave(wave_number)
-        last_wave_end_time = current_time
-
-
     for i, spark in sorted(enumerate(sparks), reverse=True):
         spark.move(1)
         spark.draw(screen)
         if not spark.alive:
             sparks.pop(i)
-    
+
     #static particle settings and handling
     for system in particle_systems:
         if system.duration > 0:
@@ -348,8 +329,10 @@ while True:
         pygame.draw.circle(screen, (255, 255, 255), (int(bullet[0][0]), int(bullet[0][1])), 7.5)
 
     if not any(enemy.is_alive() for enemy in enemies):
-        wave_number += 1
-        enemies = handle_wave(wave_number)
+        
+        if wait_time >= WAVE_INTERVAL:
+            wave_number += 1
+            enemies = handle_wave(wave_number)
         
     sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
     sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(40, 50), (255, 255, 255, 1), .2))
