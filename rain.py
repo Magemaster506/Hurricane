@@ -1,3 +1,4 @@
+
 import math
 import pygame
 
@@ -59,3 +60,4 @@ class Rain():
                 [self.loc[0] + math.cos(self.angle - math.pi / 2) * self.speed * self.scale * 0.3, self.loc[1] - math.sin(self.angle + math.pi / 2) * self.speed * self.scale * 0.3],
                 ]
             pygame.draw.polygon(surf, self.color, points)
+
