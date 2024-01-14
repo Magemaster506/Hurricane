@@ -16,10 +16,10 @@ player_animations = {
     "west": [pygame.image.load(WEST_FRAME1).convert_alpha(), pygame.image.load(WEST_FRAME2).convert_alpha(), pygame.image.load(WEST_FRAME3).convert_alpha(), pygame.image.load(WEST_FRAME4).convert_alpha()],
 }
 
-gun_image = pygame.image.load(PISTOL_IMAGE)
-background_image = pygame.image.load(BACKGROUND_IMAGE)
+gun_image = pygame.image.load(PISTOL_IMAGE).convert_alpha()
+background_image = pygame.image.load(BACKGROUND_IMAGE).convert_alpha()
 
-ui_image = pygame.image.load(UI_IMAGE)
+ui_image = pygame.image.load(UI_IMAGE).convert_alpha()
 
 background_pos = [0, 0]
 
