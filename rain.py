@@ -1,17 +1,9 @@
-#!/usr/bin/python3.4
-# Setup Python ----------------------------------------------- #
-import pygame, sys, math, random
-
-# Setup pygame/window ---------------------------------------- #
-mainClock = pygame.time.Clock()
-from pygame.locals import *
-pygame.init()
-pygame.display.set_caption('game base')
-screen = pygame.display.set_mode((500, 500), 0, 32)
+import math
+import pygame
 
 sparks = []
 
-class Spark():
+class Rain():
     def __init__(self, loc, angle, speed, color, scale=1):
         self.loc = loc
         self.angle = angle
@@ -67,33 +59,3 @@ class Spark():
                 [self.loc[0] + math.cos(self.angle - math.pi / 2) * self.speed * self.scale * 0.3, self.loc[1] - math.sin(self.angle + math.pi / 2) * self.speed * self.scale * 0.3],
                 ]
             pygame.draw.polygon(surf, self.color, points)
-
-# Loop ------------------------------------------------------- #
-while True:
-
-    # Background --------------------------------------------- #
-    screen.fill((0,0,0))
-
-    for i, spark in sorted(enumerate(sparks), reverse=True):
-        spark.move(1)
-        spark.draw(screen)
-        if not spark.alive:
-            sparks.pop(i)
-
-
-    mx, my = pygame.mouse.get_pos()
-    sparks.append(Spark([mx, my], math.radians(random.randint(0, 360)), random.randint(3, 6), (255, 255, 255), 2))
-
-    # Buttons ------------------------------------------------ #
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == KEYDOWN:
-            if event.key == K_ESCAPE:
-                pygame.quit()
-                sys.exit()
-
-    # Update ------------------------------------------------- #
-    pygame.display.update()
-    mainClock.tick(60)

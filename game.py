@@ -4,6 +4,7 @@ from settings import *
 import sys
 import random
 import time
+from rain import Rain
 
 pygame.init()
 screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
@@ -26,6 +27,8 @@ background_pos = [0, 0]
 player_rect = player_animations[player_direction][player_frame].get_rect(center=(WIN_WIDTH // 2, WIN_HEIGHT // 2))
 
 clock = pygame.time.Clock()
+
+sparks = []
 
 def spawn_enemies(num_enemies):
     enemies = []
@@ -197,6 +200,14 @@ while True:
     clock.tick(60)
 
     screen.blit(background_image, background_pos)
+    
+    for i, spark in sorted(enumerate(sparks), reverse=True):
+        spark.move(1)
+        spark.draw(screen)
+        if not spark.alive:
+            sparks.pop(i)
+    
+    
 
     #static particle settings and handling
     for system in particle_systems:
@@ -320,6 +331,9 @@ while True:
     if not any(enemy.is_alive() for enemy in enemies):
         wave_number += 1
         enemies = handle_wave(wave_number)
+        
+    sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
+    sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(40, 50), (255, 255, 255, 1), .2))
 
     pygame.display.flip()
 
