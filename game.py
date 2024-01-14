@@ -31,7 +31,7 @@ def spawn_enemies(num_enemies):
     enemies = []
     for _ in range(num_enemies):
         x = random.randint(50, WIN_WIDTH - 50)
-        y = random.randint(50, WIN_HEIGHT - 50)
+        y = WIN_HEIGHT + random.randint(50, 200)  # Start enemies below the screen
         enemies.append(Enemy(x, y, 20, BASE_ENEMY_HEALTH))
         particle_systems.append(EnemySpawnParticleSystem([x, y], 5, 4, 3))
     return enemies
@@ -40,7 +40,7 @@ def handle_wave(wave_number):
     print(f"Wave {wave_number} starting")
     enemies = spawn_enemies(wave_number + wave_number // 2)
     print(f"Number of enemies: {len(enemies)}")
-    return enemies
+    return enemies, len(enemies)
 
 class SparksParticleSystem:
     def __init__(self, position, num_particles, burst_radius, duration):
@@ -191,7 +191,10 @@ class Enemy:
 enemy = Enemy(0, 0, 20, BASE_ENEMY_HEALTH)  
 
 wave_number = 1
-enemies = handle_wave(wave_number)
+enemies_list, enemies_remaining = handle_wave(wave_number)
+enemies = enemies_list
+
+next_wave_key_pressed = False
 
 while True:
     clock.tick(60)
@@ -210,10 +213,12 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        if event.type == pygame.KEYDOWN:
-            if event.type == pygame.K_ESCAPE:
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 sys.exit()
+            elif event.key == pygame.K_e:
+                next_wave_key_pressed = True
 
     player_position = [player_rect.centerx, player_rect.centery]
     mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -317,9 +322,12 @@ while True:
     for bullet in bullets:
         pygame.draw.circle(screen, (255, 255, 255), (int(bullet[0][0]), int(bullet[0][1])), 7.5)
 
-    if not any(enemy.is_alive() for enemy in enemies):
+    if not enemies_remaining and next_wave_key_pressed:
         wave_number += 1
-        enemies = handle_wave(wave_number)
+        enemies_list, enemies_remaining = handle_wave(wave_number)
+        next_wave_key_pressed = False
+        enemies = enemies_list  # Update the enemies variable
+
 
     pygame.display.flip()
 
