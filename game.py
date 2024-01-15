@@ -22,6 +22,8 @@ background_image = pygame.image.load(BACKGROUND_IMAGE).convert_alpha()
 
 ui_image = pygame.image.load(UI_IMAGE).convert_alpha()
 
+wait_time = 0
+
 background_pos = [0, 0]
 
 player_rect = player_animations[player_direction][player_frame].get_rect(center=(WIN_WIDTH // 2, WIN_HEIGHT // 2))
@@ -32,6 +34,7 @@ sparks = []
 
 def spawn_enemies(num_enemies):
     enemies = []
+    wait_time = 0
     for _ in range(num_enemies):
         x = random.randint(50, WIN_WIDTH - 50)
         y = random.randint(50, WIN_HEIGHT - 50)
@@ -40,10 +43,11 @@ def spawn_enemies(num_enemies):
     return enemies
 
 def handle_wave(wave_number):
+        wait_time = 0
         print(f"Wave {wave_number} starting")
         enemies = spawn_enemies(wave_number + wave_number // 2)
         print(f"Number of enemies: {len(enemies)}")
-        has_checked = 1
+        wait_time = 0
         return enemies
 
 class SparksParticleSystem:
@@ -167,6 +171,7 @@ class Enemy:
         self.hit_bullets = []  
 
     def decrease_health(self, amount):
+        wait_time = 0
         self.health -= amount
         self.hit_flash_timer = 6
         particle_systems.append(EnemyHitParticleSystem([self.position[0], self.position[1]], 2, 4, 3))
@@ -199,7 +204,7 @@ enemies = handle_wave(wave_number)
 
 while True:
     clock.tick(60)
-    wait_time = pygame.time.get_ticks()
+    wait_time += 1
     print(wait_time)
     screen.blit(background_image, background_pos)
     
@@ -293,7 +298,7 @@ while True:
             if enemy.is_alive() and bullet not in enemy.hit_bullets:
                 if distance < enemy.radius + BULLET_SIZE:
                     enemy.decrease_health(10)
-
+                    wait_time = 0
                     knockback_distance = ENEMY_KNOCKBACK  
                     knockback_direction = math.radians(player_angle) 
                     enemy.position[0] += knockback_distance * math.cos(knockback_direction)
@@ -329,7 +334,6 @@ while True:
         pygame.draw.circle(screen, (255, 255, 255), (int(bullet[0][0]), int(bullet[0][1])), 7.5)
 
     if not any(enemy.is_alive() for enemy in enemies):
-        
         if wait_time >= WAVE_INTERVAL:
             wave_number += 1
             enemies = handle_wave(wave_number)
