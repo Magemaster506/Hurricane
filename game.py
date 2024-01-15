@@ -11,13 +11,6 @@ pygame.init()
 screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 pygame.display.set_caption(GAME_TITLE)
 
-font = pygame.font.SysFont("arialblack", 40)
-TEXT_COL = (255, 255, 255)
-
-def draw_text(text, font, text_col, x, y):
-    img = font.renderer(text, True, text_col)
-    screen.blit(img, (x, y))
-
 player_animations = {
     "north": [pygame.image.load(NORTH_FRAME1).convert_alpha(), pygame.image.load(NORTH_FRAME2).convert_alpha(), pygame.image.load(NORTH_FRAME3).convert_alpha(), pygame.image.load(NORTH_FRAME4).convert_alpha()],
     "east": [pygame.image.load(EAST_FRAME1).convert_alpha(), pygame.image.load(EAST_FRAME2).convert_alpha(), pygame.image.load(EAST_FRAME3).convert_alpha(), pygame.image.load(EAST_FRAME4).convert_alpha()],
@@ -25,15 +18,22 @@ player_animations = {
     "west": [pygame.image.load(WEST_FRAME1).convert_alpha(), pygame.image.load(WEST_FRAME2).convert_alpha(), pygame.image.load(WEST_FRAME3).convert_alpha(), pygame.image.load(WEST_FRAME4).convert_alpha()],
 }
 
+font = pygame.font.SysFont("arialblack", 40)
+TEXT_COL = (255, 255, 255)
+
+def draw_text(text, font, text_col, x, y):
+    img = font.renderer(text, True, text_col)
+    screen.blit(img, (x, y))
+
 gun_image = pygame.image.load(PISTOL_IMAGE).convert_alpha()
+
 background_image = pygame.image.load(BACKGROUND_IMAGE).convert_alpha()
+background_pos = [0, 0]
 
 ui_image = pygame.image.load(UI_IMAGE).convert_alpha()
 
 wait_time = 0
 screen_shake = 0
-
-background_pos = [0, 0]
 
 player_rect = player_animations[player_direction][player_frame].get_rect(center=(WIN_WIDTH // 2, WIN_HEIGHT // 2))
 
@@ -42,8 +42,10 @@ clock = pygame.time.Clock()
 sparks = []
 
 def main_menu():
-    menu_font = pygame.font.SysFont("arialblack", 60)
-    menu_text = menu_font.render("Your Game Title", True, (255, 255, 255))
+    menu_font1 = pygame.font.SysFont("arialblack", 60)
+    menu_font2 = pygame.font.SysFont("arialblack", 40)
+    menu_text = menu_font1.render("Hurricane", True, (255, 255, 255))
+    start_text = menu_font2.render("Press 'Enter' To Start", True, (255, 255, 255))
     
     while True:
         for event in pygame.event.get():
@@ -53,14 +55,16 @@ def main_menu():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     return
+                elif event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
 
         screen.fill((0, 0, 0))  # Fill the screen with a black background
-        screen.blit(menu_text, ((WIN_WIDTH - menu_text.get_width()) // 2, (WIN_HEIGHT - menu_text.get_height()) // 2))
+        screen.blit(menu_text, ((WIN_WIDTH - menu_text.get_width()) // 2, (200) // 2))
+        screen.blit(start_text, ((WIN_WIDTH - start_text.get_width()) // 2, (500) // 2))
 
         pygame.display.flip()
         clock.tick(60)
-
-main_menu()
 
 def spawn_enemies(num_enemies):
     enemies = []
@@ -219,6 +223,7 @@ class Enemy:
         self.health = health
         self.hit_flash_timer = 0
         self.hit_bullets = []  
+        self.alive = True  # Add an 'alive' attribute
 
     def apply_screen_shake(self, shake_offset):
         self.position[0] += shake_offset[0]
@@ -234,7 +239,7 @@ class Enemy:
             trigger_hit_screen_shake(ENEMY_DESTROY_SHAKE_INTENSITY)
 
     def is_alive(self):
-        return self.health > 0
+        return self.health > 0 and self.is_alive
 
     def update(self, player_position):
         if self.hit_flash_timer > 0:
@@ -253,6 +258,24 @@ class Enemy:
                 self.position[0] += move_dx
                 self.position[1] += move_dy
     
+def check_enemy_collisions(enemies):
+    for i, enemy1 in enumerate(enemies):
+        for j, enemy2 in enumerate(enemies):
+            if i != j and enemy1.is_alive() and enemy2.is_alive():
+                distance = math.sqrt((enemy1.position[0] - enemy2.position[0])**2 + (enemy1.position[1] - enemy2.position[1])**2)
+                if distance < 2 * enemy1.radius:
+                    # Handle collision avoidance here
+                    # You can update the positions of enemies to avoid overlap
+                    # Example: Move enemy2 away from enemy1
+                    move_direction = math.atan2(enemy1.position[1] - enemy2.position[1], enemy1.position[0] - enemy2.position[0])
+                    move_distance = (2 * enemy1.radius - distance) / 2
+                    move_dx = move_distance * math.cos(move_direction)
+                    move_dy = move_distance * math.sin(move_direction)
+                    enemy2.position[0] -= move_dx
+                    enemy2.position[1] -= move_dy
+
+main_menu()
+
 enemy = Enemy(0, 0, 20, BASE_ENEMY_HEALTH)  
 wave_number = 1
 enemies = handle_wave(wave_number)
@@ -282,7 +305,7 @@ while True:
         if not spark.alive:
             sparks.pop(i)
 
-    #static particle settings and handling
+    #base particle settings and handling
     for system in particle_systems:
         if system.duration > 0:
             system.spawn_particles()
@@ -291,13 +314,13 @@ while True:
         system.draw_particles()
 
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == pygame.KEYDOWN:
-            if event.type == pygame.K_ESCAPE:
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
 
     player_position = [player_rect.centerx, player_rect.centery]
     mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -384,11 +407,15 @@ while True:
     for enemy in enemies:
         enemy.update(player_position)
 
+# Check for collisions after updating enemy positions
+    check_enemy_collisions(enemies)
+
     for enemy in enemies:
         if enemy.is_alive():
             pygame.draw.circle(screen, (255, 0, 0), (int(enemy.position[0]), int(enemy.position[1])), enemy.radius)
             if enemy.hit_flash_timer > 0:
                 pygame.draw.circle(screen, (255, 255, 255), (int(enemy.position[0]), int(enemy.position[1])), enemy.radius)
+
 
     screen.blit(player_animations[player_direction][current_frame], player_rect)
     screen.blit(ui_image, background_pos)
@@ -417,16 +444,6 @@ while True:
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(40, 50), (255, 255, 255, 1), .2))
 
-    if moving:
-        player_muzzle_flash_particles.update_position([player_rect.centerx, player_rect.centery])
-        player_muzzle_flash_particles.spawn_particles()
-
-    # Update and draw particles
-    player_muzzle_flash_particles.update_particles()
-    player_muzzle_flash_particles.draw_particles()
-
     pygame.display.flip()
-
-
 
 pygame.quit()
