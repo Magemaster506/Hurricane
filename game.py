@@ -35,19 +35,33 @@ sparks = []
 
 def spawn_enemies(num_enemies):
     enemies = []
-    wait_time = 0
     for _ in range(num_enemies):
-        x = random.randint(50, WIN_WIDTH - 50)
-        y = random.randint(50, WIN_HEIGHT - 50)
+        
+        side = random.choice(['top', 'bottom', 'left', 'right'])
+
+        if side == 'top':
+            x = random.randint(0, WIN_WIDTH)
+            y = random.randint(-100, -50)
+        elif side == 'bottom':
+            x = random.randint(0, WIN_WIDTH)
+            y = random.randint(WIN_HEIGHT + 50, WIN_HEIGHT + 100)
+        elif side == 'left':
+            x = random.randint(-100, -50)
+            y = random.randint(0, WIN_HEIGHT)
+        elif side == 'right':
+            x = random.randint(WIN_WIDTH + 50, WIN_WIDTH + 100)
+            y = random.randint(0, WIN_HEIGHT)
+
         enemies.append(Enemy(x, y, 20, BASE_ENEMY_HEALTH))
         particle_systems.append(EnemySpawnParticleSystem([x, y], 5, 4, 3))
+
     return enemies
+
 
 def handle_wave(wave_number):
         wait_time = 0
         print(f"Wave {wave_number} starting")
         enemies = spawn_enemies(wave_number + wave_number // 2)
-        print(f"Number of enemies: {len(enemies)}")
         wait_time = 0
         return enemies
 
@@ -368,7 +382,6 @@ while True:
     if any(enemy.is_alive() for enemy in enemies):
         should_rain = 1
         check = random.randint(0,5)
-        print(check)
     
     if should_rain == 1:
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
