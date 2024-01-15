@@ -341,6 +341,7 @@ while True:
 
     if any(enemy.is_alive() for enemy in enemies):
         should_rain = 1
+        print(should_rain)
     
     if should_rain == 1:
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
