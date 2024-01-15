@@ -334,12 +334,17 @@ while True:
         pygame.draw.circle(screen, (255, 255, 255), (int(bullet[0][0]), int(bullet[0][1])), 7.5)
 
     if not any(enemy.is_alive() for enemy in enemies):
+        should_rain = 0
         if wait_time >= WAVE_INTERVAL:
             wave_number += 1
             enemies = handle_wave(wave_number)
-        
-    sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
-    sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(40, 50), (255, 255, 255, 1), .2))
+
+    if any(enemy.is_alive() for enemy in enemies):
+        should_rain = 1
+    
+    if should_rain == 1:
+        sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
+        sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(40, 50), (255, 255, 255, 1), .2))
 
     pygame.display.flip()
 
