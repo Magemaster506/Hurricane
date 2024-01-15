@@ -2,7 +2,7 @@ FPS = 60
 
 WIN_HEIGHT = 800
 WIN_WIDTH = 800
-WIN_TITLE = 'Hurricane - INDEV'
+GAME_TITLE = 'Hurricane - INDEV'
 
 PLAYER_IMAGE = 'data/images/entities/player/player.png'
 PISTOL_IMAGE = 'data/images/weapons/Rifle.png'

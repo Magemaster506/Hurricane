@@ -7,8 +7,16 @@ import time
 from rain import Rain
 
 pygame.init()
+
 screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
-pygame.display.set_caption(WIN_TITLE)
+pygame.display.set_caption(GAME_TITLE)
+
+font = pygame.font.SysFont("arialblack", 40)
+TEXT_COL = (255, 255, 255)
+
+def draw_text(text, font, text_col, x, y):
+    img = font.renderer(text, True, text_col)
+    screen.blit(img, (x, y))
 
 player_animations = {
     "north": [pygame.image.load(NORTH_FRAME1).convert_alpha(), pygame.image.load(NORTH_FRAME2).convert_alpha(), pygame.image.load(NORTH_FRAME3).convert_alpha(), pygame.image.load(NORTH_FRAME4).convert_alpha()],
@@ -33,6 +41,27 @@ clock = pygame.time.Clock()
 
 sparks = []
 
+def main_menu():
+    menu_font = pygame.font.SysFont("arialblack", 60)
+    menu_text = menu_font.render("Your Game Title", True, (255, 255, 255))
+    
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    return
+
+        screen.fill((0, 0, 0))  # Fill the screen with a black background
+        screen.blit(menu_text, ((WIN_WIDTH - menu_text.get_width()) // 2, (WIN_HEIGHT - menu_text.get_height()) // 2))
+
+        pygame.display.flip()
+        clock.tick(60)
+
+main_menu()
+
 def spawn_enemies(num_enemies):
     enemies = []
     for _ in range(num_enemies):
@@ -56,7 +85,6 @@ def spawn_enemies(num_enemies):
         particle_systems.append(EnemySpawnParticleSystem([x, y], 5, 4, 3))
 
     return enemies
-
 
 def handle_wave(wave_number):
         wait_time = 0
@@ -181,6 +209,9 @@ class MuzzleFlashParticleSystem:
         for particle in self.particles:
             pygame.draw.circle(screen, (255, 255, 255), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
 
+    def update_position(self, position):
+            self.position = [position[0], position[1] + 25]
+
 class Enemy:
     def __init__(self, x, y, radius, health):
         self.position = [x, y]
@@ -221,16 +252,15 @@ class Enemy:
                 
                 self.position[0] += move_dx
                 self.position[1] += move_dy
-
+    
 enemy = Enemy(0, 0, 20, BASE_ENEMY_HEALTH)  
-
 wave_number = 1
 enemies = handle_wave(wave_number)
 
 while True:
     clock.tick(60)
     wait_time += 1
-    
+    player_muzzle_flash_particles = MuzzleFlashParticleSystem([player_rect.centerx, player_rect.centery], 4, 1, 1)
     if screen_shake > 0:
         shake_offset = (random.randint(-screen_shake, screen_shake), random.randint(-screen_shake, screen_shake))
         enemy_shake_offset = (random.randint(-screen_shake, screen_shake), random.randint(-screen_shake, screen_shake))
@@ -310,7 +340,7 @@ while True:
         player_frame = 0
     current_frame = player_frame // animation_speed
     player_rect = player_animations[player_direction][current_frame].get_rect(center=player_rect.center)
-
+    
     if pygame.mouse.get_pressed()[0]:
         if shoot_delay <= 0:
             random_angle = random.uniform(-bullet_accuracy, bullet_accuracy)
@@ -387,6 +417,16 @@ while True:
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(40, 50), (255, 255, 255, 1), .2))
 
+    if moving:
+        player_muzzle_flash_particles.update_position([player_rect.centerx, player_rect.centery])
+        player_muzzle_flash_particles.spawn_particles()
+
+    # Update and draw particles
+    player_muzzle_flash_particles.update_particles()
+    player_muzzle_flash_particles.draw_particles()
+
     pygame.display.flip()
+
+
 
 pygame.quit()
