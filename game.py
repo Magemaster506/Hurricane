@@ -23,6 +23,7 @@ background_image = pygame.image.load(BACKGROUND_IMAGE).convert_alpha()
 ui_image = pygame.image.load(UI_IMAGE).convert_alpha()
 
 wait_time = 0
+screen_shake = 0
 
 background_pos = [0, 0]
 
@@ -49,6 +50,10 @@ def handle_wave(wave_number):
         print(f"Number of enemies: {len(enemies)}")
         wait_time = 0
         return enemies
+
+def trigger_hit_screen_shake(intensity):
+    global screen_shake
+    screen_shake = intensity
 
 class SparksParticleSystem:
     def __init__(self, position, num_particles, burst_radius, duration):
@@ -170,12 +175,18 @@ class Enemy:
         self.hit_flash_timer = 0
         self.hit_bullets = []  
 
+    def apply_screen_shake(self, shake_offset):
+        self.position[0] += shake_offset[0]
+        self.position[1] += shake_offset[1]
+
     def decrease_health(self, amount):
-        wait_time = 0
         self.health -= amount
         self.hit_flash_timer = 6
         particle_systems.append(EnemyHitParticleSystem([self.position[0], self.position[1]], 2, 4, 3))
         particle_systems.append(SparksParticleSystem([self.position[0], self.position[1]], 1, 8, 1))
+        
+        if not self.is_alive():
+            trigger_hit_screen_shake(ENEMY_DESTROY_SHAKE_INTENSITY)
 
     def is_alive(self):
         return self.health > 0
@@ -205,8 +216,21 @@ enemies = handle_wave(wave_number)
 while True:
     clock.tick(60)
     wait_time += 1
-    print(wait_time)
-    screen.blit(background_image, background_pos)
+    
+    if screen_shake > 0:
+        shake_offset = (random.randint(-screen_shake, screen_shake), random.randint(-screen_shake, screen_shake))
+        enemy_shake_offset = (random.randint(-screen_shake, screen_shake), random.randint(-screen_shake, screen_shake))
+        screen.blit(background_image, (background_pos[0] + shake_offset[0], background_pos[1] + shake_offset[1]))
+
+        player_rect = player_animations[player_direction][current_frame].get_rect(
+            center=(player_rect.centerx + shake_offset[0], player_rect.centery + shake_offset[1]))
+
+        for enemy in enemies:
+            enemy.apply_screen_shake(enemy_shake_offset)
+        
+        screen_shake -= 1
+    else:
+        screen.blit(background_image, background_pos)
     
     for i, spark in sorted(enumerate(sparks), reverse=True):
         spark.move(1)
@@ -285,6 +309,7 @@ while True:
             player_rect.x -= gun_kickback_distance * math.cos(bullet_angle)
             player_rect.y -= gun_kickback_distance * math.sin(bullet_angle)
             shoot_delay = 10
+            trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
         else:
             shoot_delay -= 1
 
@@ -305,6 +330,7 @@ while True:
                     enemy.position[1] += knockback_distance * math.sin(knockback_direction)
                  
                     enemy.hit_bullets.append(bullet)
+                    trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
 
     if gun_kickback > 0:
         gun_kickback -= gun_kickback_speed
@@ -341,7 +367,8 @@ while True:
 
     if any(enemy.is_alive() for enemy in enemies):
         should_rain = 1
-        print(should_rain)
+        check = random.randint(0,5)
+        print(check)
     
     if should_rain == 1:
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
