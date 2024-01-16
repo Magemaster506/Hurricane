@@ -17,6 +17,11 @@ BULLET_TRAVEL_SPEED = 15
 FIRE_RATE = 10
 BULLET_SIZE = 7.5
 
+player_health = 40
+player_invincibility_frames = 0
+invincibility_duration = 30
+
+
 HIT_SHAKE_INTENSITY = 2
 ENEMY_DESTROY_SHAKE_INTENSITY = 20
 

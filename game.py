@@ -224,6 +224,7 @@ class Enemy:
         self.hit_flash_timer = 0
         self.hit_bullets = []  
         self.alive = True  # Add an 'alive' attribute
+        self.damage = 10
 
     def apply_screen_shake(self, shake_offset):
         self.position[0] += shake_offset[0]
@@ -240,6 +241,10 @@ class Enemy:
 
     def is_alive(self):
         return self.health > 0 and self.is_alive
+    
+    def collide_with_player(self, player_position):
+        distance = math.sqrt((player_position[0] - self.position[0]) ** 2 + (player_position[1] - self.position[1]) ** 2)
+        return distance < self.radius
 
     def update(self, player_position):
         if self.hit_flash_timer > 0:
@@ -284,6 +289,14 @@ while True:
     clock.tick(60)
     wait_time += 1
     player_muzzle_flash_particles = MuzzleFlashParticleSystem([player_rect.centerx, player_rect.centery], 4, 1, 1)
+    
+    if player_invincibility_frames > 0:
+       player_invincibility_frames -= 1
+
+    if player_health <= 0:
+        pygame.quit()
+        sys.exit()
+    
     if screen_shake > 0:
         shake_offset = (random.randint(-screen_shake, screen_shake), random.randint(-screen_shake, screen_shake))
         enemy_shake_offset = (random.randint(-screen_shake, screen_shake), random.randint(-screen_shake, screen_shake))
@@ -415,6 +428,15 @@ while True:
             pygame.draw.circle(screen, (255, 0, 0), (int(enemy.position[0]), int(enemy.position[1])), enemy.radius)
             if enemy.hit_flash_timer > 0:
                 pygame.draw.circle(screen, (255, 255, 255), (int(enemy.position[0]), int(enemy.position[1])), enemy.radius)
+                
+            if player_invincibility_frames == 0:
+                for enemy in enemies:
+                    if enemy.is_alive():   
+                        if enemy.collide_with_player(player_position):
+                            trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
+                            player_health -= enemy.damage
+                            player_invincibility_frames = invincibility_duration
+                            print(f"Player Health: {player_health}")
 
 
     screen.blit(player_animations[player_direction][current_frame], player_rect)
@@ -438,9 +460,9 @@ while True:
 
     if any(enemy.is_alive() for enemy in enemies):
         should_rain = 1
-        check = random.randint(0,5)
     
     if should_rain == 1:
+        #trigger_hit_screen_shake(1)
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(40, 50), (255, 255, 255, 1), .2))
 
