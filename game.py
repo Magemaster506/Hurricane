@@ -66,27 +66,28 @@ def main_menu():
         pygame.display.flip()
         clock.tick(60)
 
-def spawn_enemies(num_enemies):
+def spawn_enemies(num_enemies, should_spawn = True):
     enemies = []
-    for _ in range(num_enemies):
-        
-        side = random.choice(['top', 'bottom', 'left', 'right'])
+    if should_spawn:
+        for _ in range(num_enemies):
+            
+            side = random.choice(['top', 'bottom', 'left', 'right'])
 
-        if side == 'top':
-            x = random.randint(0, WIN_WIDTH)
-            y = random.randint(-100, -50)
-        elif side == 'bottom':
-            x = random.randint(0, WIN_WIDTH)
-            y = random.randint(WIN_HEIGHT + 50, WIN_HEIGHT + 100)
-        elif side == 'left':
-            x = random.randint(-100, -50)
-            y = random.randint(0, WIN_HEIGHT)
-        elif side == 'right':
-            x = random.randint(WIN_WIDTH + 50, WIN_WIDTH + 100)
-            y = random.randint(0, WIN_HEIGHT)
+            if side == 'top':
+                x = random.randint(0, WIN_WIDTH)
+                y = random.randint(-100, -50)
+            elif side == 'bottom':
+                x = random.randint(0, WIN_WIDTH)
+                y = random.randint(WIN_HEIGHT + 50, WIN_HEIGHT + 100)
+            elif side == 'left':
+                x = random.randint(-100, -50)
+                y = random.randint(0, WIN_HEIGHT)
+            elif side == 'right':
+                x = random.randint(WIN_WIDTH + 50, WIN_WIDTH + 100)
+                y = random.randint(0, WIN_HEIGHT)
 
-        enemies.append(Enemy(x, y, 20, BASE_ENEMY_HEALTH))
-        particle_systems.append(EnemySpawnParticleSystem([x, y], 5, 4, 3))
+            enemies.append(Enemy(x, y, 20, BASE_ENEMY_HEALTH))
+            particle_systems.append(EnemySpawnParticleSystem([x, y], 5, 4, 3))
 
     return enemies
 
@@ -262,7 +263,24 @@ class Enemy:
                 
                 self.position[0] += move_dx
                 self.position[1] += move_dy
+
+class Door:
+    def __init__(self, x, y, width, height):
+        self.rect = pygame.Rect(x, y, width, height)
+
+def transition_to_new_scene():
+    player_rect.center = (400, 700)
+    enemies.clear()
     
+    global is_outside
+    is_outside = False
+
+def transition_to_old_scene():
+    player_rect.center = (400, 100)
+    
+    global is_outside
+    is_outside = True
+
 def check_enemy_collisions(enemies):
     for i, enemy1 in enumerate(enemies):
         for j, enemy2 in enumerate(enemies):
@@ -284,12 +302,30 @@ main_menu()
 enemy = Enemy(0, 0, 20, BASE_ENEMY_HEALTH)  
 wave_number = 1
 enemies = handle_wave(wave_number)
+top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
+bottom_door = Door(WIN_WIDTH // 2 - 50, 800, 100, 20)
+is_outside = True
 
 while True:
     clock.tick(60)
     wait_time += 1
     player_muzzle_flash_particles = MuzzleFlashParticleSystem([player_rect.centerx, player_rect.centery], 4, 1, 1)
+    print(is_outside)
     
+
+    if is_outside == True:
+        top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
+        if top_door.rect.colliderect(player_rect):
+            is_outside = False
+            transition_to_new_scene()
+    else:
+        bottom_door = Door(WIN_WIDTH // 2 - 50, 780, 100, 20)
+        sparks.clear()
+        if bottom_door.rect.colliderect(player_rect):
+            is_outside = True
+            transition_to_old_scene()
+        enemies.clear()
+        
     if player_invincibility_frames > 0:
        player_invincibility_frames -= 1
 
@@ -377,21 +413,22 @@ while True:
     current_frame = player_frame // animation_speed
     player_rect = player_animations[player_direction][current_frame].get_rect(center=player_rect.center)
     
-    if pygame.mouse.get_pressed()[0]:
-        if shoot_delay <= 0:
-            random_angle = random.uniform(-bullet_accuracy, bullet_accuracy)
-            bullet_angle = math.radians(player_angle + random_angle)
-            bullet_pos = [player_rect.centerx + weapon_length * math.cos(bullet_angle),
-                          player_rect.centery + weapon_length * math.sin(bullet_angle)]
-            bullets.append([bullet_pos, bullet_angle])
-            particle_systems.append(MuzzleFlashParticleSystem([bullet_pos[0], bullet_pos[1]], 4, 1 , 1))
-            gun_kickback = gun_kickback_distance
-            player_rect.x -= gun_kickback_distance * math.cos(bullet_angle)
-            player_rect.y -= gun_kickback_distance * math.sin(bullet_angle)
-            shoot_delay = 10
-            trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
-        else:
-            shoot_delay -= 1
+    if is_outside == True:
+        if pygame.mouse.get_pressed()[0]:
+            if shoot_delay <= 0:
+                random_angle = random.uniform(-bullet_accuracy, bullet_accuracy)
+                bullet_angle = math.radians(player_angle + random_angle)
+                bullet_pos = [player_rect.centerx + weapon_length * math.cos(bullet_angle),
+                            player_rect.centery + weapon_length * math.sin(bullet_angle)]
+                bullets.append([bullet_pos, bullet_angle])
+                particle_systems.append(MuzzleFlashParticleSystem([bullet_pos[0], bullet_pos[1]], 4, 1 , 1))
+                gun_kickback = gun_kickback_distance
+                player_rect.x -= gun_kickback_distance * math.cos(bullet_angle)
+                player_rect.y -= gun_kickback_distance * math.sin(bullet_angle)
+                shoot_delay = 10
+                trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
+            else:
+                shoot_delay -= 1
 
     for bullet in bullets:
         bullet_pos, bullet_angle = bullet
@@ -447,24 +484,30 @@ while True:
     rotated_gun_rect = gun_rect.move(gun_pivot_offset)
     rotated_gun_rect.x -= gun_kickback
     rotated_gun_rect.y -= gun_kickback
-    screen.blit(rotated_gun, rotated_gun_rect.topleft)
+    if is_outside == True:
+        screen.blit(rotated_gun, rotated_gun_rect.topleft)
 
     for bullet in bullets:
         pygame.draw.circle(screen, (255, 255, 255), (int(bullet[0][0]), int(bullet[0][1])), 7.5)
 
     if not any(enemy.is_alive() for enemy in enemies):
         should_rain = 0
-        if wait_time >= WAVE_INTERVAL:
+        if wait_time >= WAVE_INTERVAL and is_outside == True:
             wave_number += 1
             enemies = handle_wave(wave_number)
 
     if any(enemy.is_alive() for enemy in enemies):
         should_rain = 1
     
-    if should_rain == 1:
+    if should_rain == 1 and is_outside == True:
         #trigger_hit_screen_shake(1)
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(40, 50), (255, 255, 255, 1), .2))
+
+    if is_outside == True:
+        pygame.draw.rect(screen, (0, 128, 255), top_door.rect)
+    else:
+        pygame.draw.rect(screen, (0, 128, 255), bottom_door.rect)
 
     pygame.display.flip()
 
