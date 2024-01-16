@@ -268,6 +268,23 @@ class Door:
     def __init__(self, x, y, width, height):
         self.rect = pygame.Rect(x, y, width, height)
 
+class Weapon:
+    def __init__(self, name, fire_rate, automatic, damage, accuracy, kickback):
+        self.name = name
+        self.fire_rate = fire_rate
+        self.automatic = automatic
+        self.damage = damage
+        self.accuracy = accuracy
+        self.kickback = kickback
+        self.shoot_delay = 0
+
+pistol = Weapon(name='Pistol', fire_rate = 1.5, automatic = False, damage = 7, accuracy = 0.01, kickback = 5)
+has_pistol = True
+machine_gun = Weapon(name = 'Machine Gun', fire_rate = 5, automatic = False, damage = 5, accuracy = 0.1, kickback = 10)
+has_machine_gun = False
+#starting weapon
+current_weapon = pistol
+
 def transition_to_new_scene():
     player_rect.center = (400, 700)
     enemies.clear()
@@ -301,6 +318,7 @@ main_menu()
 
 enemy = Enemy(0, 0, 20, BASE_ENEMY_HEALTH)  
 wave_number = 1
+save_wave = 0
 enemies = handle_wave(wave_number)
 top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
 bottom_door = Door(WIN_WIDTH // 2 - 50, 800, 100, 20)
@@ -315,6 +333,7 @@ while True:
         top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
         if top_door.rect.colliderect(player_rect):
             is_outside = False
+            save_wave = wave_number
             transition_to_new_scene()
     else:
         bottom_door = Door(WIN_WIDTH // 2 - 50, 780, 100, 20)
@@ -322,7 +341,9 @@ while True:
         if bottom_door.rect.colliderect(player_rect):
             is_outside = True
             transition_to_old_scene()
+            wave_number = save_wave
         enemies.clear()
+        wave_number = save_wave - 1
         
     if player_invincibility_frames > 0:
        player_invincibility_frames -= 1
@@ -368,6 +389,10 @@ while True:
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
+                elif event.key == pygame.K_1:
+                    current_weapon = pistol
+                elif event.key == pygame.K_2:
+                    current_weapon = machine_gun
 
     player_position = [player_rect.centerx, player_rect.centery]
     mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -413,20 +438,20 @@ while True:
     
     if is_outside == True:
         if pygame.mouse.get_pressed()[0]:
-            if shoot_delay <= 0:
-                random_angle = random.uniform(-bullet_accuracy, bullet_accuracy)
+            if current_weapon.automatic or (current_weapon.shoot_delay <= 0):
+                random_angle = random.uniform(-current_weapon.accuracy, current_weapon.accuracy)
                 bullet_angle = math.radians(player_angle + random_angle)
                 bullet_pos = [player_rect.centerx + weapon_length * math.cos(bullet_angle),
                             player_rect.centery + weapon_length * math.sin(bullet_angle)]
                 bullets.append([bullet_pos, bullet_angle])
-                particle_systems.append(MuzzleFlashParticleSystem([bullet_pos[0], bullet_pos[1]], 4, 1 , 1))
+                particle_systems.append(MuzzleFlashParticleSystem([bullet_pos[0], bullet_pos[1]], 4, 1, 1))
                 gun_kickback = gun_kickback_distance
                 player_rect.x -= gun_kickback_distance * math.cos(bullet_angle)
                 player_rect.y -= gun_kickback_distance * math.sin(bullet_angle)
-                shoot_delay = 10
+                current_weapon.shoot_delay = 60 / current_weapon.fire_rate  # Convert fire rate to frames
                 trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
-            else:
-                shoot_delay -= 1
+            elif not current_weapon.automatic:
+                current_weapon.shoot_delay -= 1
 
     for bullet in bullets:
         bullet_pos, bullet_angle = bullet
