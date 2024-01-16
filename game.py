@@ -309,9 +309,7 @@ is_outside = True
 while True:
     clock.tick(60)
     wait_time += 1
-    player_muzzle_flash_particles = MuzzleFlashParticleSystem([player_rect.centerx, player_rect.centery], 4, 1, 1)
-    print(is_outside)
-    
+    player_muzzle_flash_particles = MuzzleFlashParticleSystem([player_rect.centerx, player_rect.centery], 4, 1, 1)    
 
     if is_outside == True:
         top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
@@ -457,7 +455,6 @@ while True:
     for enemy in enemies:
         enemy.update(player_position)
 
-# Check for collisions after updating enemy positions
     check_enemy_collisions(enemies)
 
     for enemy in enemies:
@@ -473,7 +470,6 @@ while True:
                             trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
                             player_health -= enemy.damage
                             player_invincibility_frames = invincibility_duration
-                            print(f"Player Health: {player_health}")
 
 
     screen.blit(player_animations[player_direction][current_frame], player_rect)
