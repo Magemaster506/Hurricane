@@ -16,12 +16,17 @@ big_shoot_sfx = pygame.mixer.Sound('data/sounds/bigshoot.wav')
 death_sfx = pygame.mixer.Sound('data/sounds/death.wav')
 step1_sfx = pygame.mixer.Sound('data/sounds/step1.mp3')
 step2_sfx = pygame.mixer.Sound('data/sounds/step2.mp3')
+scrap_pickup_sfx = pygame.mixer.Sound('data/sounds/pickupCoin.wav')
 
 step1_sfx.set_volume(0.5)
 step2_sfx.set_volume(0.5)
 
 footstep_delay = 25
 footstep_counter = footstep_delay
+
+scrap_count = 0
+
+coins = []
 
 player_animations = {
     "north": [pygame.image.load(NORTH_FRAME1).convert_alpha(), pygame.image.load(NORTH_FRAME2).convert_alpha(), pygame.image.load(NORTH_FRAME3).convert_alpha(), pygame.image.load(NORTH_FRAME4).convert_alpha()],
@@ -256,6 +261,9 @@ class Enemy:
         
         if not self.is_alive():
             death_sfx.play()
+            coins.append(Coin(self.position[0] + random.uniform(-20, 20), self.position[1] + random.uniform(-20, 20)))
+            coins.append(Coin(self.position[0] + random.uniform(-10, 10), self.position[1] + random.uniform(-10, 10)))
+            coins.append(Coin(self.position[0] + random.uniform(-10, 10), self.position[1] + random.uniform(-10, 10)))
             trigger_hit_screen_shake(ENEMY_DESTROY_SHAKE_INTENSITY)
 
     def is_alive(self):
@@ -297,6 +305,37 @@ class Weapon:
         self.num_bullets = num_bullets
         self.shoot_delay = 0
         self.bullets = []
+
+class Coin:
+    def __init__(self, x, y):
+        self.position = [x, y]
+        self.radius = 10
+        self.collection_radius = 100
+        self.rotation = random.uniform(0, 2 * math.pi)
+        self.image = pygame.image.load(random.choice(['data/images/scrap/scrap1.png', 'data/images/scrap/scrap2.png', 'data/images/scrap/scrap3.png'])).convert_alpha()
+
+    def is_collected(self, player_rect):
+        coin_rect = pygame.Rect(self.position[0] - self.radius, self.position[1] - self.radius, 2 * self.radius, 2 * self.radius)
+        return coin_rect.colliderect(player_rect)
+        
+    def draw(self, screen):
+        rotated_image = pygame.transform.rotate(self.image, math.degrees(self.rotation))
+        img_rect = rotated_image.get_rect(center=(self.position[0], self.position[1]))
+        screen.blit(rotated_image, img_rect.topleft)
+
+    def update(self, player_position):
+        move_speed = 5
+        
+        dx = player_position[0] - self.position[0]
+        dy = player_position[1] - self.position[1]
+        distance = math.sqrt(dx ** 2 + dy ** 2)
+        
+        if distance > 0 and distance < self.collection_radius:
+            move_dx = (dx / distance) * move_speed
+            move_dy = (dy / distance) * move_speed
+            
+            self.position[0] += move_dx
+            self.position[1] += move_dy         
 
 pistol = Weapon(name='Pistol', fire_rate = 12, automatic = False, damage = 20, accuracy = 2, kickback = 15, num_bullets = 1)
 has_pistol = True
@@ -349,7 +388,6 @@ while True:
     wait_time += 1
     player_muzzle_flash_particles = MuzzleFlashParticleSystem([player_rect.centerx, player_rect.centery], 4, 1, 1)    
 
-    
     if is_outside == True:
         top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
         if top_door.rect.colliderect(player_rect):
@@ -581,6 +619,17 @@ while True:
         pygame.draw.rect(screen, (0, 128, 255), top_door.rect)
     else:
         pygame.draw.rect(screen, (0, 128, 255), bottom_door.rect)
+        
+    for coin in coins:
+        coin.update(player_position)
+        coin.draw(screen)
+        
+    for coin in coins[:]:
+        if coin.is_collected(player_rect):
+            scrap_count += 1
+            scrap_pickup_sfx.play()
+            particle_systems.append(MuzzleFlashParticleSystem([player_position[0], player_position[1]], 4, 3, 4))
+            coins.remove(coin)
         
     pygame.display.flip()
 
