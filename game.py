@@ -278,6 +278,11 @@ class Weapon:
         self.kickback = kickback
         self.shoot_delay = 0
 
+class Interactable:
+    def __init__(self, x, y, width, height, image):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.image = image
+
 pistol = Weapon(name='Pistol', fire_rate = 1.5, automatic = False, damage = 7, accuracy = 0.01, kickback = 5)
 has_pistol = True
 machine_gun = Weapon(name = 'Machine Gun', fire_rate = 5, automatic = False, damage = 5, accuracy = 0.1, kickback = 10)
@@ -313,7 +318,7 @@ def check_enemy_collisions(enemies):
                     move_dy = move_distance * math.sin(move_direction)
                     enemy2.position[0] -= move_dx
                     enemy2.position[1] -= move_dy
-
+    
 main_menu()
 
 enemy = Enemy(0, 0, 20, BASE_ENEMY_HEALTH)  
@@ -323,12 +328,14 @@ enemies = handle_wave(wave_number)
 top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
 bottom_door = Door(WIN_WIDTH // 2 - 50, 800, 100, 20)
 is_outside = True
+interactables = [Interactable(400, 400, 50, 50, pygame.image.load('data/images/weapons/pistol.png'))]
 
 while True:
     clock.tick(60)
     wait_time += 1
     player_muzzle_flash_particles = MuzzleFlashParticleSystem([player_rect.centerx, player_rect.centery], 4, 1, 1)    
 
+    
     if is_outside == True:
         top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
         if top_door.rect.colliderect(player_rect):
@@ -344,7 +351,7 @@ while True:
             wave_number = save_wave
         enemies.clear()
         wave_number = save_wave - 1
-        
+    
     if player_invincibility_frames > 0:
        player_invincibility_frames -= 1
 
@@ -393,14 +400,22 @@ while True:
                     current_weapon = pistol
                 elif event.key == pygame.K_2:
                     current_weapon = machine_gun
+                elif event.key == pygame.K_e:
+                    for interactable in interactables:
+                        if is_outside == False:
+                            if player_rect.colliderect(interactable.rect):
+                                print("Interacted with the object")
 
     player_position = [player_rect.centerx, player_rect.centery]
     mouse_x, mouse_y = pygame.mouse.get_pos()
+
+    
 
     dx = mouse_x - player_rect.centerx
     dy = mouse_y - player_rect.centery
     player_angle = math.degrees(math.atan2(dy, dx))
 
+    
     if abs(dy) > abs(dx):
         if dy < 0:
             player_direction = "north"
@@ -529,7 +544,7 @@ while True:
         pygame.draw.rect(screen, (0, 128, 255), top_door.rect)
     else:
         pygame.draw.rect(screen, (0, 128, 255), bottom_door.rect)
-
+        
     pygame.display.flip()
 
 pygame.quit()
