@@ -17,6 +17,8 @@ death_sfx = pygame.mixer.Sound('data/sounds/death.wav')
 step1_sfx = pygame.mixer.Sound('data/sounds/step1.mp3')
 step2_sfx = pygame.mixer.Sound('data/sounds/step2.mp3')
 scrap_pickup_sfx = pygame.mixer.Sound('data/sounds/pickupCoin.wav')
+weapon_switch_sfx = pygame.mixer.Sound('data/sounds/weaponswitch.wav')
+enemy_hit_sfx = pygame.mixer.Sound('data/sounds/enemyhit.wav')
 
 step1_sfx.set_volume(0.5)
 step2_sfx.set_volume(0.5)
@@ -258,6 +260,7 @@ class Enemy:
         self.hit_flash_timer = 6
         particle_systems.append(EnemyHitParticleSystem([self.position[0], self.position[1]], 2, 4, 3))
         particle_systems.append(SparksParticleSystem([self.position[0], self.position[1]], 1, 8, 1))
+        enemy_hit_sfx.play()
         
         if not self.is_alive():
             death_sfx.play()
@@ -450,14 +453,17 @@ while True:
                     sys.exit()
                 elif event.key == pygame.K_1 and has_pistol == True and current_weapon is not pistol:
                     current_weapon = pistol
+                    weapon_switch_sfx.play()
                     bullets.clear()
                     current_weapon.bullets.clear()
                 elif event.key == pygame.K_2 and has_machine_gun == True and current_weapon is not machine_gun:
                     current_weapon = machine_gun
+                    weapon_switch_sfx.play()
                     bullets.clear()
                     current_weapon.bullets.clear()
                 elif event.key == pygame.K_3 and has_shotgun == True and current_weapon is not shotgun:
                     current_weapon = shotgun
+                    weapon_switch_sfx.play()
                     bullets.clear()
                     current_weapon.bullets.clear()
                 elif event.key == pygame.K_e:
