@@ -5,9 +5,12 @@ WIN_WIDTH = 800
 GAME_TITLE = 'Hurricane - INDEV'
 
 PLAYER_IMAGE = 'data/images/entities/player/player.png'
-PISTOL_IMAGE = 'data/images/weapons/Rifle.png'
+
 FLIPPED_PISTOL_IMAGE = 'data/images/weapons/pistol_flipped.png'
 BACKGROUND_IMAGE = 'data/images/background.png'
+
+PISTOL_IMAGE = 'data/images/weapons/Pistol.png'
+MACHINE_GUN_IMAGE = 'data/images/weapons/Rifle.png'
 
 UI_IMAGE = 'data/images/UI.png'
 
@@ -29,6 +32,9 @@ PARTICLE_RANGE = 0.5
 MUZZLE_PARTICLE_RANGE = 1
 
 BULLET_COLOR = (255, 255, 255)
+
+workbench_x = 700
+workbench_y = 400
 
 WAVE_INTERVAL = 300
 

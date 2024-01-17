@@ -17,6 +17,10 @@ player_animations = {
     "south": [pygame.image.load(SOUTH_FRAME1).convert_alpha(), pygame.image.load(SOUTH_FRAME2).convert_alpha(), pygame.image.load(SOUTH_FRAME3).convert_alpha(), pygame.image.load(SOUTH_FRAME4).convert_alpha()],
     "west": [pygame.image.load(WEST_FRAME1).convert_alpha(), pygame.image.load(WEST_FRAME2).convert_alpha(), pygame.image.load(WEST_FRAME3).convert_alpha(), pygame.image.load(WEST_FRAME4).convert_alpha()],
 }
+weapon_images = {
+    'Pistol': pygame.image.load(PISTOL_IMAGE).convert_alpha(),
+    'Machine Gun': pygame.image.load(MACHINE_GUN_IMAGE).convert_alpha(),
+}
 
 font = pygame.font.SysFont("arialblack", 40)
 TEXT_COL = (255, 255, 255)
@@ -278,14 +282,9 @@ class Weapon:
         self.kickback = kickback
         self.shoot_delay = 0
 
-class Interactable:
-    def __init__(self, x, y, width, height, image):
-        self.rect = pygame.Rect(x, y, width, height)
-        self.image = image
-
-pistol = Weapon(name='Pistol', fire_rate = 1.5, automatic = False, damage = 7, accuracy = 0.01, kickback = 5)
+pistol = Weapon(name='Pistol', fire_rate = 1.5, automatic = False, damage = 10, accuracy = 0.035, kickback = 15)
 has_pistol = True
-machine_gun = Weapon(name = 'Machine Gun', fire_rate = 5, automatic = False, damage = 5, accuracy = 0.1, kickback = 10)
+machine_gun = Weapon(name = 'Machine Gun', fire_rate = 5, automatic = False, damage = 5, accuracy = 0.1, kickback = 5)
 has_machine_gun = False
 #starting weapon
 current_weapon = pistol
@@ -328,7 +327,6 @@ enemies = handle_wave(wave_number)
 top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
 bottom_door = Door(WIN_WIDTH // 2 - 50, 800, 100, 20)
 is_outside = True
-interactables = [Interactable(400, 400, 50, 50, pygame.image.load('data/images/weapons/pistol.png'))]
 
 while True:
     clock.tick(60)
@@ -351,7 +349,9 @@ while True:
             wave_number = save_wave
         enemies.clear()
         wave_number = save_wave - 1
-    
+        
+
+        
     if player_invincibility_frames > 0:
        player_invincibility_frames -= 1
 
@@ -401,15 +401,10 @@ while True:
                 elif event.key == pygame.K_2:
                     current_weapon = machine_gun
                 elif event.key == pygame.K_e:
-                    for interactable in interactables:
-                        if is_outside == False:
-                            if player_rect.colliderect(interactable.rect):
-                                print("Interacted with the object")
+                    pass
 
     player_position = [player_rect.centerx, player_rect.centery]
     mouse_x, mouse_y = pygame.mouse.get_pos()
-
-    
 
     dx = mouse_x - player_rect.centerx
     dy = mouse_y - player_rect.centery
@@ -453,14 +448,14 @@ while True:
     
     if is_outside == True:
         if pygame.mouse.get_pressed()[0]:
-            if current_weapon.automatic or (current_weapon.shoot_delay <= 0):
+            if (current_weapon.shoot_delay <= 0):
                 random_angle = random.uniform(-current_weapon.accuracy, current_weapon.accuracy)
                 bullet_angle = math.radians(player_angle + random_angle)
                 bullet_pos = [player_rect.centerx + weapon_length * math.cos(bullet_angle),
                             player_rect.centery + weapon_length * math.sin(bullet_angle)]
                 bullets.append([bullet_pos, bullet_angle])
                 particle_systems.append(MuzzleFlashParticleSystem([bullet_pos[0], bullet_pos[1]], 4, 1, 1))
-                gun_kickback = gun_kickback_distance
+                gun_kickback = current_weapon.kickback
                 player_rect.x -= gun_kickback_distance * math.cos(bullet_angle)
                 player_rect.y -= gun_kickback_distance * math.sin(bullet_angle)
                 current_weapon.shoot_delay = 60 / current_weapon.fire_rate  # Convert fire rate to frames
@@ -520,8 +515,17 @@ while True:
     rotated_gun_rect = gun_rect.move(gun_pivot_offset)
     rotated_gun_rect.x -= gun_kickback
     rotated_gun_rect.y -= gun_kickback
+    # Replace the existing gun_image line with this block
     if is_outside == True:
-        screen.blit(rotated_gun, rotated_gun_rect.topleft)
+        if current_weapon.name in weapon_images:
+            gun_image = weapon_images[current_weapon.name]
+            rotated_gun = pygame.transform.rotate(gun_image, -player_angle)
+            gun_rect = rotated_gun.get_rect(center=player_rect.center)
+            rotated_gun_rect = gun_rect.move(gun_pivot_offset)
+            rotated_gun_rect.x -= gun_kickback
+            rotated_gun_rect.y -= gun_kickback
+            screen.blit(rotated_gun, rotated_gun_rect.topleft)
+
 
     for bullet in bullets:
         pygame.draw.circle(screen, (255, 255, 255), (int(bullet[0][0]), int(bullet[0][1])), 7.5)
