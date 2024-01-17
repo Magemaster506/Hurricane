@@ -6,10 +6,10 @@ GAME_TITLE = 'Hurricane - INDEV'
 
 PLAYER_IMAGE = 'data/images/entities/player/player.png'
 
-FLIPPED_PISTOL_IMAGE = 'data/images/weapons/pistol_flipped.png'
 BACKGROUND_IMAGE = 'data/images/background.png'
 
 PISTOL_IMAGE = 'data/images/weapons/Pistol.png'
+SHOTGUN_IMAGE = 'data/images/weapons/shotgun.png'
 MACHINE_GUN_IMAGE = 'data/images/weapons/Rifle.png'
 
 UI_IMAGE = 'data/images/UI.png'

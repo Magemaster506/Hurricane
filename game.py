@@ -273,19 +273,24 @@ class Door:
         self.rect = pygame.Rect(x, y, width, height)
 
 class Weapon:
-    def __init__(self, name, fire_rate, automatic, damage, accuracy, kickback):
+    def __init__(self, name, fire_rate, automatic, damage, accuracy, kickback, num_bullets):
         self.name = name
         self.fire_rate = fire_rate
         self.automatic = automatic
         self.damage = damage
         self.accuracy = accuracy
         self.kickback = kickback
+        self.num_bullets = num_bullets
         self.shoot_delay = 0
+        self.bullets = []
 
-pistol = Weapon(name='Pistol', fire_rate = 1.5, automatic = False, damage = 10, accuracy = 0.035, kickback = 15)
+pistol = Weapon(name='Pistol', fire_rate = 15, automatic = False, damage = 20, accuracy = 2, kickback = 15, num_bullets = 1)
 has_pistol = True
-machine_gun = Weapon(name = 'Machine Gun', fire_rate = 5, automatic = False, damage = 5, accuracy = 0.1, kickback = 5)
-has_machine_gun = False
+shotgun = Weapon(name='Shotgun', fire_rate = 50, automatic = False, damage = 15, accuracy = 10, kickback = 20, num_bullets = 5)
+has_shotgun = True
+machine_gun = Weapon(name = 'Machine Gun', fire_rate = 8, automatic = False, damage = 5, accuracy = 5, kickback = 5, num_bullets = 1)
+has_machine_gun = True
+
 #starting weapon
 current_weapon = pistol
 
@@ -308,9 +313,6 @@ def check_enemy_collisions(enemies):
             if i != j and enemy1.is_alive() and enemy2.is_alive():
                 distance = math.sqrt((enemy1.position[0] - enemy2.position[0])**2 + (enemy1.position[1] - enemy2.position[1])**2)
                 if distance < 2 * enemy1.radius:
-                    # Handle collision avoidance here
-                    # You can update the positions of enemies to avoid overlap
-                    # Example: Move enemy2 away from enemy1
                     move_direction = math.atan2(enemy1.position[1] - enemy2.position[1], enemy1.position[0] - enemy2.position[0])
                     move_distance = (2 * enemy1.radius - distance) / 2
                     move_dx = move_distance * math.cos(move_direction)
@@ -396,10 +398,12 @@ while True:
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
-                elif event.key == pygame.K_1:
+                elif event.key == pygame.K_1 and has_pistol == True:
                     current_weapon = pistol
-                elif event.key == pygame.K_2:
+                elif event.key == pygame.K_2 and has_machine_gun == True:
                     current_weapon = machine_gun
+                elif event.key == pygame.K_3 and has_shotgun == True:
+                    current_weapon = shotgun
                 elif event.key == pygame.K_e:
                     pass
 
@@ -449,21 +453,22 @@ while True:
     if is_outside == True:
         if pygame.mouse.get_pressed()[0]:
             if (current_weapon.shoot_delay <= 0):
-                random_angle = random.uniform(-current_weapon.accuracy, current_weapon.accuracy)
-                bullet_angle = math.radians(player_angle + random_angle)
-                bullet_pos = [player_rect.centerx + weapon_length * math.cos(bullet_angle),
-                            player_rect.centery + weapon_length * math.sin(bullet_angle)]
-                bullets.append([bullet_pos, bullet_angle])
-                particle_systems.append(MuzzleFlashParticleSystem([bullet_pos[0], bullet_pos[1]], 4, 1, 1))
-                gun_kickback = current_weapon.kickback
-                player_rect.x -= gun_kickback_distance * math.cos(bullet_angle)
-                player_rect.y -= gun_kickback_distance * math.sin(bullet_angle)
-                current_weapon.shoot_delay = 60 / current_weapon.fire_rate  # Convert fire rate to frames
+                for _ in range(current_weapon.num_bullets):
+                    random_angle = random.uniform(-current_weapon.accuracy, current_weapon.accuracy)
+                    bullet_angle = math.radians(player_angle + random_angle)
+                    bullet_pos = [player_rect.centerx + weapon_length * math.cos(bullet_angle),
+                                player_rect.centery + weapon_length * math.sin(bullet_angle)]
+                    current_weapon.bullets.append([bullet_pos, bullet_angle])
+                    particle_systems.append(MuzzleFlashParticleSystem([bullet_pos[0], bullet_pos[1]], 4, 1, 1))
+                    gun_kickback = current_weapon.kickback
+                    player_rect.x -= gun_kickback_distance * math.cos(bullet_angle)
+                    player_rect.y -= gun_kickback_distance * math.sin(bullet_angle)
+                current_weapon.shoot_delay = current_weapon.fire_rate  # Convert fire rate to frames
                 trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
             elif not current_weapon.automatic:
                 current_weapon.shoot_delay -= 1
 
-    for bullet in bullets:
+    for bullet in current_weapon.bullets:
         bullet_pos, bullet_angle = bullet
         bullet_pos[0] += bullet_speed * math.cos(bullet_angle)
         bullet_pos[1] += bullet_speed * math.sin(bullet_angle)
@@ -472,13 +477,13 @@ while True:
             distance = math.sqrt((bullet_pos[0] - enemy.position[0])**2 + (bullet_pos[1] - enemy.position[1])**2)
             if enemy.is_alive() and bullet not in enemy.hit_bullets:
                 if distance < enemy.radius + BULLET_SIZE:
-                    enemy.decrease_health(10)
+                    enemy.decrease_health(current_weapon.damage)
                     wait_time = 0
-                    knockback_distance = ENEMY_KNOCKBACK  
-                    knockback_direction = math.radians(player_angle) 
+                    knockback_distance = ENEMY_KNOCKBACK
+                    knockback_direction = math.radians(player_angle)
                     enemy.position[0] += knockback_distance * math.cos(knockback_direction)
                     enemy.position[1] += knockback_distance * math.sin(knockback_direction)
-                 
+
                     enemy.hit_bullets.append(bullet)
                     trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
 
@@ -526,9 +531,9 @@ while True:
             rotated_gun_rect.y -= gun_kickback
             screen.blit(rotated_gun, rotated_gun_rect.topleft)
 
-
-    for bullet in bullets:
+    for bullet in current_weapon.bullets:
         pygame.draw.circle(screen, (255, 255, 255), (int(bullet[0][0]), int(bullet[0][1])), 7.5)
+
 
     if not any(enemy.is_alive() for enemy in enemies):
         should_rain = 0
