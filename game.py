@@ -20,6 +20,7 @@ player_animations = {
 weapon_images = {
     'Pistol': pygame.image.load(PISTOL_IMAGE).convert_alpha(),
     'Machine Gun': pygame.image.load(MACHINE_GUN_IMAGE).convert_alpha(),
+    'Shotgun': pygame.image.load(SHOTGUN_IMAGE).convert_alpha(),
 }
 
 font = pygame.font.SysFont("arialblack", 40)
@@ -284,7 +285,7 @@ class Weapon:
         self.shoot_delay = 0
         self.bullets = []
 
-pistol = Weapon(name='Pistol', fire_rate = 15, automatic = False, damage = 20, accuracy = 2, kickback = 15, num_bullets = 1)
+pistol = Weapon(name='Pistol', fire_rate = 12, automatic = False, damage = 20, accuracy = 2, kickback = 15, num_bullets = 1)
 has_pistol = True
 shotgun = Weapon(name='Shotgun', fire_rate = 50, automatic = False, damage = 15, accuracy = 10, kickback = 20, num_bullets = 5)
 has_shotgun = True
@@ -398,12 +399,18 @@ while True:
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
-                elif event.key == pygame.K_1 and has_pistol == True:
+                elif event.key == pygame.K_1 and has_pistol == True and current_weapon is not pistol:
                     current_weapon = pistol
-                elif event.key == pygame.K_2 and has_machine_gun == True:
+                    bullets.clear()
+                    current_weapon.bullets.clear()
+                elif event.key == pygame.K_2 and has_machine_gun == True and current_weapon is not machine_gun:
                     current_weapon = machine_gun
-                elif event.key == pygame.K_3 and has_shotgun == True:
+                    bullets.clear()
+                    current_weapon.bullets.clear()
+                elif event.key == pygame.K_3 and has_shotgun == True and current_weapon is not shotgun:
                     current_weapon = shotgun
+                    bullets.clear()
+                    current_weapon.bullets.clear()
                 elif event.key == pygame.K_e:
                     pass
 
