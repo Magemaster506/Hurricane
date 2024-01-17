@@ -11,6 +11,18 @@ pygame.init()
 screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 pygame.display.set_caption(GAME_TITLE)
 
+small_shoot_sfx = pygame.mixer.Sound('data/sounds/smallshoot.wav')
+big_shoot_sfx = pygame.mixer.Sound('data/sounds/bigshoot.wav')
+death_sfx = pygame.mixer.Sound('data/sounds/death.wav')
+step1_sfx = pygame.mixer.Sound('data/sounds/step1.mp3')
+step2_sfx = pygame.mixer.Sound('data/sounds/step2.mp3')
+
+step1_sfx.set_volume(0.5)
+step2_sfx.set_volume(0.5)
+
+footstep_delay = 25
+footstep_counter = footstep_delay
+
 player_animations = {
     "north": [pygame.image.load(NORTH_FRAME1).convert_alpha(), pygame.image.load(NORTH_FRAME2).convert_alpha(), pygame.image.load(NORTH_FRAME3).convert_alpha(), pygame.image.load(NORTH_FRAME4).convert_alpha()],
     "east": [pygame.image.load(EAST_FRAME1).convert_alpha(), pygame.image.load(EAST_FRAME2).convert_alpha(), pygame.image.load(EAST_FRAME3).convert_alpha(), pygame.image.load(EAST_FRAME4).convert_alpha()],
@@ -243,6 +255,7 @@ class Enemy:
         particle_systems.append(SparksParticleSystem([self.position[0], self.position[1]], 1, 8, 1))
         
         if not self.is_alive():
+            death_sfx.play()
             trigger_hit_screen_shake(ENEMY_DESTROY_SHAKE_INTENSITY)
 
     def is_alive(self):
@@ -353,8 +366,6 @@ while True:
         enemies.clear()
         wave_number = save_wave - 1
         
-
-        
     if player_invincibility_frames > 0:
        player_invincibility_frames -= 1
 
@@ -452,6 +463,12 @@ while True:
 
     if moving:
         player_frame = (player_frame + 1) % (len(player_animations[player_direction]) * animation_speed)
+        
+        footstep_counter -= 1
+        if footstep_counter <= 0:
+            chosen_footstep_sfx = random.choice([step1_sfx, step2_sfx])
+            chosen_footstep_sfx.play()
+            footstep_counter = footstep_delay
     else:
         player_frame = 0
     current_frame = player_frame // animation_speed
@@ -460,6 +477,10 @@ while True:
     if is_outside == True:
         if pygame.mouse.get_pressed()[0]:
             if (current_weapon.shoot_delay <= 0):
+                if current_weapon == shotgun:
+                    big_shoot_sfx.play()
+                else:
+                    small_shoot_sfx.play()
                 for _ in range(current_weapon.num_bullets):
                     random_angle = random.uniform(-current_weapon.accuracy, current_weapon.accuracy)
                     bullet_angle = math.radians(player_angle + random_angle)

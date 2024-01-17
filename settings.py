@@ -1,3 +1,5 @@
+import pygame
+
 FPS = 60
 
 WIN_HEIGHT = 800
@@ -41,6 +43,14 @@ WAVE_INTERVAL = 300
 BASE_ENEMY_HEALTH = 70
 BASE_ENEMY_MOVE_SPEED = 2
 ENEMY_KNOCKBACK = 4
+
+
+
+
+
+
+
+
 
 NORTH_FRAME1 = 'data/images/entities/player/north/northframe1.png'
 NORTH_FRAME2 = 'data/images/entities/player/north/northframe2.png'
