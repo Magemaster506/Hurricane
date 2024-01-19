@@ -19,6 +19,7 @@ step2_sfx = pygame.mixer.Sound('data/sounds/step2.mp3')
 scrap_pickup_sfx = pygame.mixer.Sound('data/sounds/pickupCoin.wav')
 weapon_switch_sfx = pygame.mixer.Sound('data/sounds/weaponswitch.wav')
 enemy_hit_sfx = pygame.mixer.Sound('data/sounds/enemyhit.wav')
+pistol_shoot_sfx = pygame.mixer.Sound('data/sounds/pistolShoot.wav')
 
 step1_sfx.set_volume(0.5)
 step2_sfx.set_volume(0.5)
@@ -26,6 +27,7 @@ step2_sfx.set_volume(0.5)
 footstep_delay = 25
 footstep_counter = footstep_delay
 
+wave_value = 0
 scrap_count = 0
 
 coins = []
@@ -47,7 +49,7 @@ TEXT_COL = (255, 255, 255)
 
 health_bar_width = 200
 health_bar_height = 20
-health_bar_color = (0, 255, 0)  # Green color for health bar
+health_bar_color = (0, 255, 0)
 
 scrap_font = pygame.font.SysFont("arialblack", 30)
 
@@ -126,7 +128,9 @@ def spawn_enemies(num_enemies, should_spawn = True):
 
 def handle_wave(wave_number):
         wait_time = 0
+        global wave_value
         print(f"Wave {wave_number} starting")
+        wave_value += 1
         enemies = spawn_enemies(wave_number + wave_number // 2)
         wait_time = 0
         return enemies
@@ -257,7 +261,7 @@ class Enemy:
         self.health = health
         self.hit_flash_timer = 0
         self.hit_bullets = []  
-        self.alive = True  # Add an 'alive' attribute
+        self.alive = True
         self.damage = 10
 
     def apply_screen_shake(self, shake_offset):
@@ -273,9 +277,9 @@ class Enemy:
         
         if not self.is_alive():
             death_sfx.play()
-            coins.append(Coin(self.position[0] + random.uniform(-20, 20), self.position[1] + random.uniform(-20, 20)))
-            coins.append(Coin(self.position[0] + random.uniform(-10, 10), self.position[1] + random.uniform(-10, 10)))
-            coins.append(Coin(self.position[0] + random.uniform(-10, 10), self.position[1] + random.uniform(-10, 10)))
+            scrap_amount = random.randint(1, 5)
+            for _ in range(scrap_amount):
+                coins.append(Coin(self.position[0] + random.uniform(-20, 20), self.position[1] + random.uniform(-20, 20)))
             trigger_hit_screen_shake(ENEMY_DESTROY_SHAKE_INTENSITY)
 
     def is_alive(self):
@@ -400,6 +404,8 @@ while True:
     wait_time += 1
     player_muzzle_flash_particles = MuzzleFlashParticleSystem([player_rect.centerx, player_rect.centery], 4, 1, 1)    
 
+    print(wave_value)
+
     if is_outside == True:
         top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
         if top_door.rect.colliderect(player_rect):
@@ -429,7 +435,7 @@ while True:
         screen.blit(background_image, (background_pos[0] + shake_offset[0], background_pos[1] + shake_offset[1]))
 
         player_rect = player_animations[player_direction][current_frame].get_rect(
-            center=(player_rect.centerx + shake_offset[0], player_rect.centery + shake_offset[1]))
+            center = (player_rect.centerx + shake_offset[0], player_rect.centery + shake_offset[1]))
 
         for enemy in enemies:
             enemy.apply_screen_shake(enemy_shake_offset)
@@ -532,6 +538,8 @@ while True:
             if (current_weapon.shoot_delay <= 0):
                 if current_weapon == shotgun:
                     big_shoot_sfx.play()
+                elif current_weapon == pistol:
+                    pistol_shoot_sfx.play()
                 else:
                     small_shoot_sfx.play()
                 for _ in range(current_weapon.num_bullets):
@@ -594,14 +602,12 @@ while True:
 
 
     screen.blit(player_animations[player_direction][current_frame], player_rect)
-    screen.blit(ui_image, background_pos)
 
     rotated_gun = pygame.transform.rotate(gun_image, -player_angle)
     gun_rect = rotated_gun.get_rect(center=player_rect.center)
     rotated_gun_rect = gun_rect.move(gun_pivot_offset)
     rotated_gun_rect.x -= gun_kickback
     rotated_gun_rect.y -= gun_kickback
-    # Replace the existing gun_image line with this block
     if is_outside == True:
         if current_weapon.name in weapon_images:
             gun_image = weapon_images[current_weapon.name]
@@ -622,8 +628,16 @@ while True:
             wave_number += 1
             enemies = handle_wave(wave_number)
 
+    should_rain = 0
+    
     if any(enemy.is_alive() for enemy in enemies):
-        should_rain = 1
+        if wave_value == 2:
+            should_rain = 1
+            for enemy in enemies:
+                enemy.decrease_health(1)            
+    
+    if wave_value >= 6:
+        wave_value = 0
     
     if should_rain == 1 and is_outside == True:
         #trigger_hit_screen_shake(1)
@@ -649,11 +663,11 @@ while True:
     pygame.draw.rect(screen, health_bar_color, (10, 10, (player_health / MAX_PLAYER_HEALTH) * health_bar_width, health_bar_height))
 
     scrap_text = f"Scrap: {scrap_count}"
-    draw_text(scrap_text, scrap_font, TEXT_COL, WIN_WIDTH - 150, 10)
+    draw_text(scrap_text, scrap_font, TEXT_COL, WIN_WIDTH - 250, 10)
 
     # Draw current weapon
     weapon_text = f"Weapon: {current_weapon.name}"
-    draw_text(weapon_text, weapon_font, TEXT_COL, WIN_WIDTH - 150, 50)
+    draw_text(weapon_text, weapon_font, TEXT_COL, WIN_WIDTH - 250, 50)
 
     pygame.display.flip()
 
