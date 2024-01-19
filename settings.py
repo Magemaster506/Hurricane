@@ -22,6 +22,7 @@ BULLET_TRAVEL_SPEED = 15
 FIRE_RATE = 10
 BULLET_SIZE = 7.5
 
+MAX_PLAYER_HEALTH = 40
 player_health = 40
 player_invincibility_frames = 0
 invincibility_duration = 30

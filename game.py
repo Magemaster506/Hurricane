@@ -45,8 +45,17 @@ weapon_images = {
 font = pygame.font.SysFont("arialblack", 40)
 TEXT_COL = (255, 255, 255)
 
+health_bar_width = 200
+health_bar_height = 20
+health_bar_color = (0, 255, 0)  # Green color for health bar
+
+scrap_font = pygame.font.SysFont("arialblack", 30)
+
+weapon_font = pygame.font.SysFont("arialblack", 20)
+
+
 def draw_text(text, font, text_col, x, y):
-    img = font.renderer(text, True, text_col)
+    img = font.render(text, True, text_col)
     screen.blit(img, (x, y))
 
 gun_image = pygame.image.load(PISTOL_IMAGE).convert_alpha()
@@ -636,7 +645,16 @@ while True:
             scrap_pickup_sfx.play()
             particle_systems.append(MuzzleFlashParticleSystem([player_position[0], player_position[1]], 4, 3, 4))
             coins.remove(coin)
-        
+
+    pygame.draw.rect(screen, health_bar_color, (10, 10, (player_health / MAX_PLAYER_HEALTH) * health_bar_width, health_bar_height))
+
+    scrap_text = f"Scrap: {scrap_count}"
+    draw_text(scrap_text, scrap_font, TEXT_COL, WIN_WIDTH - 150, 10)
+
+    # Draw current weapon
+    weapon_text = f"Weapon: {current_weapon.name}"
+    draw_text(weapon_text, weapon_font, TEXT_COL, WIN_WIDTH - 150, 50)
+
     pygame.display.flip()
 
 pygame.quit()
