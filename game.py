@@ -359,7 +359,7 @@ pistol = Weapon(name='Pistol', fire_rate = 24, automatic = False, damage = 20, a
 has_pistol = True
 shotgun = Weapon(name='Shotgun', fire_rate = 50, automatic = False, damage = 15, accuracy = 10, kickback = 20, num_bullets = 5, pierce_enemies = 0)
 has_shotgun = True
-machine_gun = Weapon(name = 'Machine Gun', fire_rate = 8, automatic = False, damage = 10, accuracy = 10, kickback = 5, num_bullets = 100, pierce_enemies = 0)
+machine_gun = Weapon(name = 'Machine Gun', fire_rate = 8, automatic = False, damage = 10, accuracy = 10, kickback = 5, num_bullets = 1, pierce_enemies = 0)
 has_machine_gun = True
 
 #starting weapon
@@ -522,6 +522,18 @@ while True:
         player_rect.move_ip(0, player_speed)
         moving = True
 
+    if player_rect.left < 0:
+        player_rect.left = 0
+
+    if player_rect.right > WIN_WIDTH:
+        player_rect.right = WIN_WIDTH
+
+    if player_rect.top < 0:
+        player_rect.top = 0
+
+    if player_rect.bottom > WIN_HEIGHT:
+        player_rect.bottom = WIN_HEIGHT
+    
     if moving:
         player_frame = (player_frame + 1) % (len(player_animations[player_direction]) * animation_speed)
         
