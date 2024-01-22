@@ -3,7 +3,6 @@ import math
 from settings import *
 import sys
 import random
-import time
 from rain import Rain
 
 pygame.init()
@@ -29,6 +28,10 @@ footstep_counter = footstep_delay
 
 wave_value = 0
 scrap_count = 0
+
+circle_radius = 50
+circle_center = (400, 400)
+inside_circle = False
 
 coins = []
 
@@ -61,7 +64,6 @@ def draw_text(text, font, text_col, x, y):
     screen.blit(img, (x, y))
 
 gun_image = pygame.image.load(PISTOL_IMAGE).convert_alpha()
-
 background_image = pygame.image.load(BACKGROUND_IMAGE).convert_alpha()
 background_pos = [0, 0]
 
@@ -404,9 +406,7 @@ is_outside = True
 while True:
     clock.tick(60)
     wait_time += 1
-    player_muzzle_flash_particles = MuzzleFlashParticleSystem([player_rect.centerx, player_rect.centery], 4, 1, 1)    
-
-    print(wave_value)
+    player_muzzle_flash_particles = MuzzleFlashParticleSystem([player_rect.centerx, player_rect.centery], 4, 1, 1)
 
     if is_outside == True:
         top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
@@ -415,6 +415,7 @@ while True:
             save_wave = wave_number
             transition_to_new_scene()
     else:
+
         bottom_door = Door(WIN_WIDTH // 2 - 50, 780, 100, 20)
         sparks.clear()
         if bottom_door.rect.colliderect(player_rect):
@@ -533,7 +534,11 @@ while True:
 
     if player_rect.bottom > WIN_HEIGHT:
         player_rect.bottom = WIN_HEIGHT
-    
+
+    player_position = [player_rect.centerx, player_rect.centery]
+
+    distance_to_center = math.sqrt((player_position[0] - WIN_WIDTH / 2) ** 2 + (player_position[1] - WIN_HEIGHT / 2) ** 2)
+
     if moving:
         player_frame = (player_frame + 1) % (len(player_animations[player_direction]) * animation_speed)
         
@@ -694,6 +699,16 @@ while True:
     weapon_text = f"Weapon: {current_weapon.name}"
     draw_text(weapon_text, weapon_font, TEXT_COL, WIN_WIDTH - 250, 50)
 
-    pygame.display.flip()
+    if distance_to_center < circle_radius:
+        if is_outside == False:
+            inside_circle = True
+    else:
+        inside_circle = False
 
-pygame.quit()
+    if inside_circle:
+        print("Player inside circ")
+
+    if is_outside == False:
+        pygame.draw.circle(screen, (255, 255, 255), circle_center, circle_radius, 2)
+
+    pygame.display.flip()
