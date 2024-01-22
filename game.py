@@ -631,18 +631,14 @@ while True:
     should_rain = 0
     
     if any(enemy.is_alive() for enemy in enemies):
-        if wave_value == 2:
+        if wave_value == 5:
             should_rain = 1
-            for enemy in enemies:
-                enemy.decrease_health(1)            
     
-    if wave_value >= 6:
+    if wave_value == 6:
         wave_value = 0
     
     if should_rain == 1 and is_outside == True:
-        trigger_hit_screen_shake(1)
-        sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
-        sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(40, 50), (255, 255, 255, 1), .2))
+        #trigger_hit_screen_shake(1)
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(40, 50), (255, 255, 255, 1), .2))
 
