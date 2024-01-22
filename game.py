@@ -311,7 +311,7 @@ class Door:
         self.rect = pygame.Rect(x, y, width, height)
 
 class Weapon:
-    def __init__(self, name, fire_rate, automatic, damage, accuracy, kickback, num_bullets):
+    def __init__(self, name, fire_rate, automatic, damage, accuracy, kickback, num_bullets, pierce_enemies):
         self.name = name
         self.fire_rate = fire_rate
         self.automatic = automatic
@@ -319,8 +319,10 @@ class Weapon:
         self.accuracy = accuracy
         self.kickback = kickback
         self.num_bullets = num_bullets
+        self.pierce_enemies = pierce_enemies
         self.shoot_delay = 0
         self.bullets = []
+
 
 class Coin:
     def __init__(self, x, y):
@@ -353,11 +355,11 @@ class Coin:
             self.position[0] += move_dx
             self.position[1] += move_dy         
 
-pistol = Weapon(name='Pistol', fire_rate = 12, automatic = False, damage = 20, accuracy = 2, kickback = 15, num_bullets = 1)
+pistol = Weapon(name='Pistol', fire_rate = 24, automatic = False, damage = 20, accuracy = 2, kickback = 15, num_bullets = 1, pierce_enemies = 0)
 has_pistol = True
-shotgun = Weapon(name='Shotgun', fire_rate = 50, automatic = False, damage = 15, accuracy = 10, kickback = 20, num_bullets = 5)
+shotgun = Weapon(name='Shotgun', fire_rate = 50, automatic = False, damage = 15, accuracy = 10, kickback = 20, num_bullets = 5, pierce_enemies = 0)
 has_shotgun = True
-machine_gun = Weapon(name = 'Machine Gun', fire_rate = 8, automatic = False, damage = 5, accuracy = 5, kickback = 5, num_bullets = 1)
+machine_gun = Weapon(name = 'Machine Gun', fire_rate = 8, automatic = False, damage = 10, accuracy = 10, kickback = 5, num_bullets = 100, pierce_enemies = 0)
 has_machine_gun = True
 
 #starting weapon
@@ -547,18 +549,23 @@ while True:
                     bullet_angle = math.radians(player_angle + random_angle)
                     bullet_pos = [player_rect.centerx + weapon_length * math.cos(bullet_angle),
                                 player_rect.centery + weapon_length * math.sin(bullet_angle)]
-                    current_weapon.bullets.append([bullet_pos, bullet_angle])
+                    
+                    # Initialize pierces to 0 for each bullet
+                    pierces = 0
+                    
+                    current_weapon.bullets.append([bullet_pos, bullet_angle, pierces])
                     particle_systems.append(MuzzleFlashParticleSystem([bullet_pos[0], bullet_pos[1]], 4, 1, 1))
                     gun_kickback = current_weapon.kickback
                     player_rect.x -= gun_kickback_distance * math.cos(bullet_angle)
                     player_rect.y -= gun_kickback_distance * math.sin(bullet_angle)
+
                 current_weapon.shoot_delay = current_weapon.fire_rate  # Convert fire rate to frames
                 trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
             elif not current_weapon.automatic:
                 current_weapon.shoot_delay -= 1
 
     for bullet in current_weapon.bullets:
-        bullet_pos, bullet_angle = bullet
+        bullet_pos, bullet_angle, pierces = bullet
         bullet_pos[0] += bullet_speed * math.cos(bullet_angle)
         bullet_pos[1] += bullet_speed * math.sin(bullet_angle)
 
@@ -575,6 +582,14 @@ while True:
 
                     enemy.hit_bullets.append(bullet)
                     trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
+                    
+                    # Increment pierces for the bullet
+                    pierces += 1
+
+                    # Check if the bullet has reached its pierce limit
+                    if pierces >= current_weapon.pierce_enemies:
+                        current_weapon.bullets.remove(bullet)
+                        break  # No need to check further collisions for this bullet
 
     if gun_kickback > 0:
         gun_kickback -= gun_kickback_speed
@@ -638,7 +653,7 @@ while True:
         wave_value = 0
     
     if should_rain == 1 and is_outside == True:
-        #trigger_hit_screen_shake(1)
+        trigger_hit_screen_shake(1)
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
         sparks.append(Rain([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(40, 50), (255, 255, 255, 1), .2))
 
