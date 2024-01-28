@@ -20,6 +20,13 @@ weapon_switch_sfx = pygame.mixer.Sound('data/sounds/weaponswitch.wav')
 enemy_hit_sfx = pygame.mixer.Sound('data/sounds/enemyhit.wav')
 pistol_shoot_sfx = pygame.mixer.Sound('data/sounds/pistolShoot.wav')
 
+cursor_image = pygame.image.load("data/images/cursor_main.png")
+original_cursor_rect = cursor_image.get_rect()
+angle = 0
+rotation_speed = -2
+
+pygame.mouse.set_visible(False)
+
 step1_sfx.set_volume(0.5)
 step2_sfx.set_volume(0.5)
 
@@ -489,6 +496,12 @@ while True:
 
     player_position = [player_rect.centerx, player_rect.centery]
     mouse_x, mouse_y = pygame.mouse.get_pos()
+    
+    angle += rotation_speed
+    
+    rotated_cursor = pygame.transform.rotate(cursor_image, angle)
+    rotated_cursor_rect = rotated_cursor.get_rect()
+    rotated_cursor_rect.center = (mouse_x, mouse_y)
 
     dx = mouse_x - player_rect.centerx
     dy = mouse_y - player_rect.centery
@@ -710,5 +723,7 @@ while True:
 
     if is_outside == False:
         pygame.draw.circle(screen, (255, 255, 255), circle_center, circle_radius, 2)
+
+    screen.blit(rotated_cursor, rotated_cursor_rect)
 
     pygame.display.flip()
