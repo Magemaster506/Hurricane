@@ -415,6 +415,13 @@ while True:
     wait_time += 1
     player_muzzle_flash_particles = MuzzleFlashParticleSystem([player_rect.centerx, player_rect.centery], 4, 1, 1)
 
+    print(current_weapon.shoot_delay)
+
+    current_weapon.shoot_delay -= 1
+    
+    if current_weapon.shoot_delay < 0:
+        current_weapon.shoot_delay = 0
+
     if is_outside == True:
         top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
         if top_door.rect.colliderect(player_rect):
@@ -468,10 +475,24 @@ while True:
         system.update_particles()
         system.draw_particles()
 
+    mouse_pressed = pygame.mouse.get_pressed()
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+
+    if mouse_pressed[0]: 
+        radius = 21.5
+        alpha = 255
+        while alpha > 0:
+            alpha -= 5
+            circle_color = (WHITE[0], WHITE[1], WHITE[2], alpha)
+            pygame.draw.circle(screen, circle_color, (mouse_x, mouse_y), radius, 2)
+
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                #current_weapon.shoot_delay = 0
+                pass
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
@@ -495,7 +516,7 @@ while True:
                     pass
 
     player_position = [player_rect.centerx, player_rect.centery]
-    mouse_x, mouse_y = pygame.mouse.get_pos()
+    
     
     angle += rotation_speed
     
@@ -592,7 +613,7 @@ while True:
                 current_weapon.shoot_delay = current_weapon.fire_rate  # Convert fire rate to frames
                 trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
             elif not current_weapon.automatic:
-                current_weapon.shoot_delay -= 1
+                pass
 
     for bullet in current_weapon.bullets:
         bullet_pos, bullet_angle, pierces = bullet
@@ -727,3 +748,4 @@ while True:
     screen.blit(rotated_cursor, rotated_cursor_rect)
 
     pygame.display.flip()
+

@@ -2,6 +2,8 @@ import pygame
 
 FPS = 60
 
+WHITE = (255, 255, 255)
+
 WIN_HEIGHT = 800
 WIN_WIDTH = 800
 GAME_TITLE = 'Hurricane - INDEV'
