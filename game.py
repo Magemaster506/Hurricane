@@ -371,7 +371,6 @@ has_shotgun = True
 machine_gun = Weapon(name = 'Machine Gun', fire_rate = 8, automatic = False, damage = 10, accuracy = 10, kickback = 5, num_bullets = 1, pierce_enemies = 0)
 has_machine_gun = True
 
-#starting weapon
 current_weapon = pistol
 
 def transition_to_new_scene():
@@ -410,6 +409,15 @@ top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
 bottom_door = Door(WIN_WIDTH // 2 - 50, 800, 100, 20)
 is_outside = True
 
+radius = 22
+alpha = 255
+
+radius_cooldown = 5
+radius_cooldown_counter = 0
+
+spin_cooldown = 10
+spin_cooldown_counter = 0
+        
 while True:
     clock.tick(60)
     wait_time += 1
@@ -429,7 +437,6 @@ while True:
             save_wave = wave_number
             transition_to_new_scene()
     else:
-
         bottom_door = Door(WIN_WIDTH // 2 - 50, 780, 100, 20)
         sparks.clear()
         if bottom_door.rect.colliderect(player_rect):
@@ -467,7 +474,6 @@ while True:
         if not spark.alive:
             sparks.pop(i)
 
-    #base particle settings and handling
     for system in particle_systems:
         if system.duration > 0:
             system.spawn_particles()
@@ -479,12 +485,8 @@ while True:
     mouse_x, mouse_y = pygame.mouse.get_pos()
 
     if mouse_pressed[0]: 
-        radius = 21.5
-        alpha = 255
-        while alpha > 0:
-            alpha -= 5
-            circle_color = (WHITE[0], WHITE[1], WHITE[2], alpha)
-            pygame.draw.circle(screen, circle_color, (mouse_x, mouse_y), radius, 2)
+        circle_color = (WHITE[0], WHITE[1], WHITE[2], alpha)
+        pygame.draw.circle(screen, circle_color, (mouse_x, mouse_y), radius, 2)
 
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -517,7 +519,6 @@ while True:
 
     player_position = [player_rect.centerx, player_rect.centery]
     
-    
     angle += rotation_speed
     
     rotated_cursor = pygame.transform.rotate(cursor_image, angle)
@@ -528,7 +529,6 @@ while True:
     dy = mouse_y - player_rect.centery
     player_angle = math.degrees(math.atan2(dy, dx))
 
-    
     if abs(dy) > abs(dx):
         if dy < 0:
             player_direction = "north"
@@ -601,9 +601,11 @@ while True:
                     bullet_pos = [player_rect.centerx + weapon_length * math.cos(bullet_angle),
                                 player_rect.centery + weapon_length * math.sin(bullet_angle)]
                     
-                    # Initialize pierces to 0 for each bullet
                     pierces = 0
                     
+                    rotation_speed = -current_weapon.kickback - 5
+                    spin_cooldown_counter = spin_cooldown
+                                    
                     current_weapon.bullets.append([bullet_pos, bullet_angle, pierces])
                     particle_systems.append(MuzzleFlashParticleSystem([bullet_pos[0], bullet_pos[1]], 4, 1, 1))
                     gun_kickback = current_weapon.kickback
@@ -634,13 +636,26 @@ while True:
                     enemy.hit_bullets.append(bullet)
                     trigger_hit_screen_shake(HIT_SHAKE_INTENSITY)
                     
-                    # Increment pierces for the bullet
                     pierces += 1
 
-                    # Check if the bullet has reached its pierce limit
+                    radius = 8
+                    radius_cooldown_counter = radius_cooldown
+
                     if pierces >= current_weapon.pierce_enemies:
                         current_weapon.bullets.remove(bullet)
-                        break  # No need to check further collisions for this bullet
+                        break
+
+    if radius_cooldown_counter > 0:
+        radius_cooldown_counter -= 1
+        
+    if radius_cooldown_counter == 0:    
+        radius = 0
+
+    if spin_cooldown_counter > 0:
+        spin_cooldown_counter -= 1
+    
+    if spin_cooldown_counter == 0:
+        rotation_speed = 2
 
     if gun_kickback > 0:
         gun_kickback -= gun_kickback_speed
