@@ -85,6 +85,8 @@ clock = pygame.time.Clock()
 
 sparks = []
 
+can_move = True
+
 def main_menu():
     menu_font1 = pygame.font.SysFont("arialblack", 60)
     menu_font2 = pygame.font.SysFont("arialblack", 40)
@@ -484,9 +486,7 @@ while True:
     mouse_pressed = pygame.mouse.get_pressed()
     mouse_x, mouse_y = pygame.mouse.get_pos()
 
-    if mouse_pressed[0]: 
-        circle_color = (WHITE[0], WHITE[1], WHITE[2], alpha)
-        pygame.draw.circle(screen, circle_color, (mouse_x, mouse_y), radius, 2)
+
 
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -515,7 +515,8 @@ while True:
                     bullets.clear()
                     current_weapon.bullets.clear()
                 elif event.key == pygame.K_e:
-                    pass
+                    if inside_circle == True:
+                        can_move = False
 
     player_position = [player_rect.centerx, player_rect.centery]
     
@@ -543,17 +544,17 @@ while True:
     keys = pygame.key.get_pressed()
     moving = False
 
-    if keys[pygame.K_a] and not keys[pygame.K_d]:
+    if keys[pygame.K_a] and not keys[pygame.K_d] and can_move == True:
         player_rect.move_ip(-player_speed, 0)
         moving = True
-    elif keys[pygame.K_d] and not keys[pygame.K_a]:
+    elif keys[pygame.K_d] and not keys[pygame.K_a] and can_move == True:
         player_rect.move_ip(player_speed, 0)
         moving = True
 
-    if keys[pygame.K_w] and not keys[pygame.K_s]:
+    if keys[pygame.K_w] and not keys[pygame.K_s] and can_move == True:
         player_rect.move_ip(0, -player_speed)
         moving = True
-    elif keys[pygame.K_s] and not keys[pygame.K_w]:
+    elif keys[pygame.K_s] and not keys[pygame.K_w] and can_move == True:
         player_rect.move_ip(0, player_speed)
         moving = True
 
@@ -754,13 +755,18 @@ while True:
     else:
         inside_circle = False
 
-    if inside_circle:
-        print("Player inside circ")
-
     if is_outside == False:
         pygame.draw.circle(screen, (255, 255, 255), circle_center, circle_radius, 2)
 
     screen.blit(rotated_cursor, rotated_cursor_rect)
+    
+    if mouse_pressed[0]: 
+        circle_color = (WHITE[0], WHITE[1], WHITE[2], alpha)
+        pygame.draw.circle(screen, circle_color, (mouse_x, mouse_y), radius, 2)
+        pygame.draw.circle(screen, circle_color, (mouse_x, mouse_y), radius - 5, 2)
 
+    if can_move == False:
+        pass
+    
     pygame.display.flip()
 
