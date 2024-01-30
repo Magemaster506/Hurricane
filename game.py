@@ -4,21 +4,15 @@ from settings import *
 import sys
 import random
 from rain import Rain
+from particles import MuzzleFlashParticleSystem, SparksParticleSystem, EnemyHitParticleSystem, EnemySpawnParticleSystem
+from entities import *
+from sounds import *
 
 pygame.init()
 
-screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 pygame.display.set_caption(GAME_TITLE)
 
-small_shoot_sfx = pygame.mixer.Sound('data/sounds/smallshoot.wav')
-big_shoot_sfx = pygame.mixer.Sound('data/sounds/bigshoot.wav')
-death_sfx = pygame.mixer.Sound('data/sounds/death.wav')
-step1_sfx = pygame.mixer.Sound('data/sounds/step1.mp3')
-step2_sfx = pygame.mixer.Sound('data/sounds/step2.mp3')
-scrap_pickup_sfx = pygame.mixer.Sound('data/sounds/pickupCoin.wav')
-weapon_switch_sfx = pygame.mixer.Sound('data/sounds/weaponswitch.wav')
-enemy_hit_sfx = pygame.mixer.Sound('data/sounds/enemyhit.wav')
-pistol_shoot_sfx = pygame.mixer.Sound('data/sounds/pistolShoot.wav')
+
 
 cursor_image = pygame.image.load("data/images/cursor_main.png")
 original_cursor_rect = cursor_image.get_rect()
@@ -40,7 +34,7 @@ circle_radius = 50
 circle_center = (400, 400)
 inside_circle = False
 
-coins = []
+
 
 player_animations = {
     "north": [pygame.image.load(NORTH_FRAME1).convert_alpha(), pygame.image.load(NORTH_FRAME2).convert_alpha(), pygame.image.load(NORTH_FRAME3).convert_alpha(), pygame.image.load(NORTH_FRAME4).convert_alpha()],
@@ -146,176 +140,7 @@ def handle_wave(wave_number):
         wait_time = 0
         return enemies
 
-def trigger_hit_screen_shake(intensity):
-    global screen_shake
-    screen_shake = intensity
 
-class SparksParticleSystem:
-    def __init__(self, position, num_particles, burst_radius, duration):
-        self.particles = []
-        self.position = position
-        self.num_particles = num_particles
-        self.burst_radius = burst_radius
-        self.duration = duration
-
-    def spawn_particles(self):
-        for _ in range(self.num_particles):
-            angle = random.uniform(0, 2 * math.pi / 2)
-            speed = random.uniform(1, 3)  # Random speed
-            x_speed = speed * math.cos(angle)
-            y_speed = speed * math.sin(angle)
-            self.particles.append([list(self.position), [x_speed * 2, y_speed * 2], random.randint(2, 4)])
-
-    def update_particles(self):
-        for particle in self.particles:
-            particle[0][0] += particle[1][0]
-            particle[0][1] += particle[1][1]
-            particle[2] -= PARTICLE_RANGE  # Particle lifetime
-            if particle[2] <= 0 or particle[0][0] < 0 or particle[0][0] > WIN_WIDTH or particle [0][1] < 0 or particle[0][1] > WIN_HEIGHT:
-                self.particles.remove(particle)
-
-    def draw_particles(self):
-        for particle in self.particles:
-            pygame.draw.circle(screen, (255, 255, 0), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
-                  
-class EnemyHitParticleSystem:
-    def __init__(self, position, num_particles, burst_radius, duration):
-        self.particles = []
-        self.position = position
-        self.num_particles = num_particles
-        self.burst_radius = burst_radius
-        self.duration = duration
-
-    def spawn_particles(self):
-        for _ in range(self.num_particles):
-            angle = random.uniform(0, 2 * math.pi)
-            speed = random.uniform(1, 3)  # Random speed
-            x_speed = speed * math.cos(angle)
-            y_speed = speed * math.sin(angle)
-            self.particles.append([list(self.position), [x_speed, y_speed], random.randint(6, 8)])
-
-    def update_particles(self):
-        for particle in self.particles:
-            particle[0][0] += particle[1][0]
-            particle[0][1] += particle[1][1]
-            particle[2] -= PARTICLE_RANGE  # Particle lifetime
-            if particle[2] <= 0 or particle[0][0] < 0 or particle[0][0] > WIN_WIDTH or particle [0][1] < 0 or particle[0][1] > WIN_HEIGHT:
-                self.particles.remove(particle)
-
-    def draw_particles(self):
-        for particle in self.particles:
-            pygame.draw.circle(screen, (255, 255, 255), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
-            
-class EnemySpawnParticleSystem:
-    def __init__(self, position, num_particles, burst_radius, duration):
-        self.particles = []
-        self.position = position
-        self.num_particles = num_particles
-        self.burst_radius = burst_radius
-        self.duration = duration
-
-    def spawn_particles(self):
-        for _ in range(self.num_particles):
-            angle = random.uniform(0, 2 * math.pi)
-            speed = random.uniform(1, 3)  # Random speed
-            x_speed = speed * math.cos(angle)
-            y_speed = speed * math.sin(angle)
-            self.particles.append([list(self.position), [x_speed, y_speed], random.randint(6, 8)])
-
-    def update_particles(self):
-        for particle in self.particles:
-            particle[0][0] += particle[1][0]
-            particle[0][1] += particle[1][1]
-            particle[2] -= PARTICLE_RANGE  # Particle lifetime
-            if particle[2] <= 0 or particle[0][0] < 0 or particle[0][0] > WIN_WIDTH or particle [0][1] < 0 or particle[0][1] > WIN_HEIGHT:
-                self.particles.remove(particle)
-
-    def draw_particles(self):
-        for particle in self.particles:
-            pygame.draw.circle(screen, (255, 0, 0), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
-
-class MuzzleFlashParticleSystem:
-    def __init__(self, position, num_particles, burst_radius, duration):
-        self.particles = []
-        self.position = position
-        self.num_particles = num_particles
-        self.burst_radius = burst_radius
-        self.duration = duration
-
-    def spawn_particles(self):
-        for _ in range(self.num_particles):
-            angle = random.uniform(0, 2 * math.pi / 2)
-            speed = random.uniform(3, 5)  # Random speed
-            x_speed = speed * math.cos(angle)
-            y_speed = speed * math.sin(angle)
-            self.particles.append([list(self.position), [x_speed, y_speed], random.randint(3, 5)])
-
-    def update_particles(self):
-        for particle in self.particles:
-            particle[0][0] += particle[1][0]
-            particle[0][1] += particle[1][1]
-            particle[2] -= MUZZLE_PARTICLE_RANGE  # Particle lifetime
-            if particle[2] <= 0 or particle[0][0] < 0 or particle[0][0] > WIN_WIDTH or particle [0][1] < 0 or particle[0][1] > WIN_HEIGHT:
-                self.particles.remove(particle)
-
-    def draw_particles(self):
-        for particle in self.particles:
-            pygame.draw.circle(screen, (255, 255, 255), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
-
-    def update_position(self, position):
-            self.position = [position[0], position[1] + 25]
-
-class Enemy:
-    def __init__(self, x, y, radius, health):
-        self.position = [x, y]
-        self.radius = radius
-        self.health = health
-        self.hit_flash_timer = 0
-        self.hit_bullets = []  
-        self.alive = True
-        self.damage = 10
-
-    def apply_screen_shake(self, shake_offset):
-        self.position[0] += shake_offset[0]
-        self.position[1] += shake_offset[1]
-
-    def decrease_health(self, amount):
-        self.health -= amount
-        self.hit_flash_timer = 6
-        particle_systems.append(EnemyHitParticleSystem([self.position[0], self.position[1]], 2, 4, 3))
-        particle_systems.append(SparksParticleSystem([self.position[0], self.position[1]], 1, 8, 1))
-        enemy_hit_sfx.play()
-        
-        if not self.is_alive():
-            death_sfx.play()
-            scrap_amount = random.randint(1, 5)
-            for _ in range(scrap_amount):
-                coins.append(Coin(self.position[0] + random.uniform(-20, 20), self.position[1] + random.uniform(-20, 20)))
-            trigger_hit_screen_shake(ENEMY_DESTROY_SHAKE_INTENSITY)
-
-    def is_alive(self):
-        return self.health > 0 and self.is_alive
-    
-    def collide_with_player(self, player_position):
-        distance = math.sqrt((player_position[0] - self.position[0]) ** 2 + (player_position[1] - self.position[1]) ** 2)
-        return distance < self.radius
-
-    def update(self, player_position):
-        if self.hit_flash_timer > 0:
-            self.hit_flash_timer -= 1
-            
-        if self.is_alive():
-            dx = player_position[0] - self.position[0]
-            dy = player_position[1] - self.position[1]
-            distance = math.sqrt(dx**2 + dy**2)
-            
-            if distance > 0:
-                move_speed = BASE_ENEMY_MOVE_SPEED
-                move_dx = (dx / distance) * move_speed
-                move_dy = (dy / distance) * move_speed
-                
-                self.position[0] += move_dx
-                self.position[1] += move_dy
 
 class Door:
     def __init__(self, x, y, width, height):
@@ -332,39 +157,32 @@ class Weapon:
         self.num_bullets = num_bullets
         self.pierce_enemies = pierce_enemies
         self.shoot_delay = 0
-        self.bullets = []
+        self.bullets = []     
 
-
-class Coin:
-    def __init__(self, x, y):
-        self.position = [x, y]
-        self.radius = 10
-        self.collection_radius = 100
-        self.rotation = random.uniform(0, 2 * math.pi)
-        self.image = pygame.image.load(random.choice(['data/images/scrap/scrap1.png', 'data/images/scrap/scrap2.png', 'data/images/scrap/scrap3.png'])).convert_alpha()
-
-    def is_collected(self, player_rect):
-        coin_rect = pygame.Rect(self.position[0] - self.radius, self.position[1] - self.radius, 2 * self.radius, 2 * self.radius)
-        return coin_rect.colliderect(player_rect)
+class Popup:
+    def __init__(self, screen):
+        self.screen = screen
+        self.width = 500
+        self.height = 350
+        self.center_x = self.screen.get_width() // 2
+        self.center_y = self.screen.get_height() // 2
+        self.surface = pygame.Surface((self.width, self.height))
+        self.surface.fill((230, 230, 230))
+        self.close_button_size = 30
         
-    def draw(self, screen):
-        rotated_image = pygame.transform.rotate(self.image, math.degrees(self.rotation))
-        img_rect = rotated_image.get_rect(center=(self.position[0], self.position[1]))
-        screen.blit(rotated_image, img_rect.topleft)
-
-    def update(self, player_position):
-        move_speed = 5
-        
-        dx = player_position[0] - self.position[0]
-        dy = player_position[1] - self.position[1]
-        distance = math.sqrt(dx ** 2 + dy ** 2)
-        
-        if distance > 0 and distance < self.collection_radius:
-            move_dx = (dx / distance) * move_speed
-            move_dy = (dy / distance) * move_speed
-            
-            self.position[0] += move_dx
-            self.position[1] += move_dy         
+        self.close_button_surface = pygame.Surface((self.close_button_size, self.close_button_size))
+        self.close_button_surface.fill((200, 0, 0))
+        self.close_button_rect = self.close_button_surface.get_rect()
+        self.close_button_rect.topright = (self.width - self.close_button_size, self.close_button_size)
+    
+    def draw(self):
+        self.screen.blit(self.surface, (self.center_x - self.width // 2, self.center_y - self.height // 2))
+        self.screen.blit(self.close_button_surface, self.close_button_rect)
+    
+    def handle_click(self, pos):
+        if self.close_button_rect.collidepoint(pos):
+            return True
+        return False
 
 pistol = Weapon(name='Pistol', fire_rate = 24, automatic = False, damage = 20, accuracy = 2, kickback = 15, num_bullets = 1, pierce_enemies = 0)
 has_pistol = True
@@ -372,8 +190,6 @@ shotgun = Weapon(name='Shotgun', fire_rate = 50, automatic = False, damage = 15,
 has_shotgun = True
 machine_gun = Weapon(name = 'Machine Gun', fire_rate = 8, automatic = False, damage = 10, accuracy = 10, kickback = 5, num_bullets = 1, pierce_enemies = 0)
 has_machine_gun = True
-
-current_weapon = pistol
 
 def transition_to_new_scene():
     player_rect.center = (400, 700)
@@ -411,7 +227,7 @@ top_door = Door(WIN_WIDTH // 2 - 50, 0, 100, 20)
 bottom_door = Door(WIN_WIDTH // 2 - 50, 800, 100, 20)
 is_outside = True
 
-radius = 22
+radius_t = 15
 alpha = 255
 
 radius_cooldown = 5
@@ -419,6 +235,8 @@ radius_cooldown_counter = 0
 
 spin_cooldown = 10
 spin_cooldown_counter = 0
+        
+current_weapon = pistol
         
 while True:
     clock.tick(60)
@@ -639,7 +457,7 @@ while True:
                     
                     pierces += 1
 
-                    radius = 8
+                    radius = radius_t
                     radius_cooldown_counter = radius_cooldown
 
                     if pierces >= current_weapon.pierce_enemies:
@@ -762,11 +580,7 @@ while True:
     
     if mouse_pressed[0]: 
         circle_color = (WHITE[0], WHITE[1], WHITE[2], alpha)
-        pygame.draw.circle(screen, circle_color, (mouse_x, mouse_y), radius, 2)
-        pygame.draw.circle(screen, circle_color, (mouse_x, mouse_y), radius - 5, 2)
-
-    if can_move == False:
-        pass
+        pygame.draw.circle(screen, circle_color, (mouse_x, mouse_y), radius, 4)
     
     pygame.display.flip()
 

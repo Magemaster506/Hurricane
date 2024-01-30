@@ -84,5 +84,7 @@ bullet_accuracy = BULLET_ACCURACY
 bullet_speed = BULLET_TRAVEL_SPEED
 
 bullets = []
+coins = []
 particle_systems = []
 
+screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
