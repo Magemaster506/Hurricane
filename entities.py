@@ -13,7 +13,7 @@ class Coin:
     def __init__(self, x, y):
         self.position = [x, y]
         self.radius = 10
-        self.collection_radius = 100
+        self.collection_radius = COIN_COLLECTION_RANGE
         self.rotation = random.uniform(0, 2 * math.pi)
         self.image = pygame.image.load(random.choice(['data/images/scrap/scrap1.png', 'data/images/scrap/scrap2.png', 'data/images/scrap/scrap3.png'])).convert_alpha()
 
