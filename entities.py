@@ -59,6 +59,14 @@ class Enemy:
         self.hit_flash_timer = 6
         particle_systems.append(EnemyHitParticleSystem([self.position[0], self.position[1]], 2, 4, 3))
         particle_systems.append(SparksParticleSystem([self.position[0], self.position[1]], 1, 8, 1))
+        sparks2.append(Polygon([self.position[0], self.position[1]], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
+        sparks2.append(Polygon([self.position[0], self.position[1]], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
+        sparks2.append(Polygon([self.position[0], self.position[1]], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
+        sparks2.append(Polygon([self.position[0], self.position[1]], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
+        sparks2.append(Polygon([self.position[0], self.position[1]], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
+        
+        
+        #sparks2.append(Polygon([self.position[0], -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
         enemy_hit_sfx.play()
         
         if not self.is_alive():

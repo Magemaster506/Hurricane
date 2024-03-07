@@ -488,6 +488,7 @@ while True:
 
     for enemy in enemies:
         if enemy.is_alive():
+            sparks2.append(Polygon([WIN_WIDTH + 200, -200], math.radians(random.randint(100, 170)), random.randint(20, 30), (255, 255, 255, 1), .5))
             pygame.draw.circle(screen, (255, 0, 0), (int(enemy.position[0]), int(enemy.position[1])), enemy.radius)
             if enemy.hit_flash_timer > 0:
                 pygame.draw.circle(screen, (255, 255, 255), (int(enemy.position[0]), int(enemy.position[1])), enemy.radius)
