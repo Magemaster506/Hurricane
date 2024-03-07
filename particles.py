@@ -45,7 +45,7 @@ class SparksParticleSystem:
     def spawn_particles(self):
         for _ in range(self.num_particles):
             angle = random.uniform(0, 2 * math.pi / 2)
-            speed = random.uniform(1, 3)  # Random speed
+            speed = random.uniform(3, 6)  # Random speed
             x_speed = speed * math.cos(angle)
             y_speed = speed * math.sin(angle)
             self.particles.append([list(self.position), [x_speed * 2, y_speed * 2], random.randint(2, 4)])
